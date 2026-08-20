@@ -9,6 +9,7 @@ import { store, on } from '../lib/store.js';
 import { setPageTitle } from '../components/shell.js';
 import { avatar, emptyState, openUserPicker } from '../components/common.js';
 import { toast, confirmDialog } from '../lib/ui.js';
+import { isLive, queueScore } from '../lib/offline.js';
 import { navigate } from '../lib/router.js';
 
 const LOADERS = {
@@ -110,11 +111,22 @@ export default async function gamePlay({ mount, params, query }) {
     instance = module.default({
       root: gameRoot,
       onScore: async (score, result) => {
+        // Every single-player game runs entirely in the browser, so it still
+        // works with no connection. The score simply waits until there is one.
+        if (!isLive()) {
+          const waiting = queueScore(key, score, result);
+          toast(`Saved on this device. ${waiting} score${waiting === 1 ? '' : 's'} will be sent when you are back online.`,
+            'info', 'You are offline');
+          return;
+        }
         try {
           const response = await api.games.submitScore(key, score, result);
           toast(`+${response.xpAwarded} XP`, 'success', result === 'win' ? 'You won.' : 'Score saved');
           renderScoreCard(mount, await api.games.scores(key));
-        } catch (err) { toast(err.message, 'error'); }
+        } catch (err) {
+          const waiting = queueScore(key, score, result);
+          toast(`Could not reach the server. Saved here; ${waiting} waiting to send.`, 'warning');
+        }
       }
     });
   }

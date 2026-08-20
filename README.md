@@ -7,6 +7,10 @@ and a full administration area together in one application.
 The hub is **private by design**. Nobody can see anything until they sign in,
 and an administrator controls who is allowed to join.
 
+It installs as a **real app** on a laptop, phone or tablet, and can also be
+built as a **Windows, macOS or Linux desktop program**. It keeps working when
+the connection drops.
+
 There are **no AI features** anywhere in this project.
 
 ---
@@ -85,6 +89,75 @@ first. See **Settings** below.
 
 This works from Windows Command Prompt, PowerShell, Windows Terminal, the
 macOS or Linux terminal, the VS Code terminal, or a hosting service.
+
+---
+
+## Installing it as a real app
+
+The hub is not only a website. It installs as a proper app with its own icon
+and its own window, with no address bar.
+
+### On a laptop or phone (easiest)
+
+1. Open the hub in Chrome, Edge or Safari
+2. **Chrome / Edge**: open the browser menu and choose **Install app**
+   (or use the **Install the app** button in Settings)
+   **iPhone / iPad**: tap **Share**, then **Add to Home Screen**
+   **Android**: tap the menu, then **Install app**
+3. It now appears with the other apps on the device
+
+It also gets shortcuts, so a right-click (or long press) on the icon jumps
+straight to Messages, Homework, Games or the Feed.
+
+> Browsers only allow installing over `https` or on `localhost`. If classmates
+> open the hub over the network on plain `http`, they can still use everything
+> normally - they just cannot install it until the hub is behind `https`.
+> See **Publishing it** below.
+
+### As a Windows / macOS / Linux desktop program
+
+This builds a real installer that puts "Grade 8 Hub" in the Start Menu or
+Applications folder:
+
+```
+npm run app:setup       # once - fetches the desktop build tools
+npm run app             # opens the app in its own window
+npm run app:build:win   # builds a Windows installer into dist-app/
+```
+
+Use `app:build:mac` or `app:build:linux` for the other systems. You can only
+build a Windows installer on Windows, a Mac one on a Mac, and so on.
+
+The desktop app runs the class server inside itself, so on that computer the
+hub works with **no network at all**. It keeps its database, uploads and its
+own sign-in secret in your normal application-data folder, so reinstalling or
+updating the app never loses the class data.
+
+Node.js must be installed for the desktop app too - it is what runs the server.
+
+---
+
+## What works offline
+
+The hub keeps working when the connection drops:
+
+| Works offline | Needs the class server |
+|---|---|
+| The whole app opens, with every screen | Sending messages and posts |
+| **All nine games**, including against the computer | Live multiplayer games |
+| The last copy of your dashboard, homework, announcements, feed, clubs and leaderboard | Seeing anything somebody else just added |
+| Scores you earn are saved and sent automatically when you are back | Signing in for the first time on a device |
+
+A bar appears at the bottom of the screen when you are offline, so it is always
+clear whether you are looking at live data or the last saved copy.
+
+Private conversations are never saved on the device, and everything cached is
+wiped when you sign out.
+
+> One thing to be clear about: this is a *class network*, so "offline" means
+> your device has no connection. The computer running the hub still has to be
+> switched on for classmates to reach it. The desktop app is the exception -
+> there the server runs on your own computer.
 
 ---
 
@@ -206,6 +279,11 @@ npm run reset-db
 | `npm run seed` | Sets up the database without starting the server |
 | `npm run reset-db` | Deletes everything and builds a fresh database |
 | `npm run create-admin` | Creates or repairs an administrator account |
+| `npm run app:setup` | Fetches the tools for building the desktop app (once) |
+| `npm run app` | Opens the hub as a desktop app in its own window |
+| `npm run app:build:win` | Builds a Windows installer into `dist-app/` |
+| `npm run app:build:mac` | Builds a macOS disk image |
+| `npm run app:build:linux` | Builds a Linux AppImage and .deb |
 
 ---
 
@@ -283,8 +361,9 @@ grade8-hub/
 │   ├── routes/             one file per area of the API
 │   └── realtime/           the live layer
 ├── database/               the SQLite file lives here
-├── public/                 favicon and static files
+├── public/                 icons, app manifest and the offline worker
 ├── uploads/                pictures members upload
+├── desktop/                the desktop app wrapper
 ├── scripts/                setup, build and admin scripts
 ├── .env.example
 ├── start.bat               Windows start file
@@ -294,6 +373,53 @@ grade8-hub/
 
 The browser code is plain ES modules, so there is **no build step and no
 bundler**. What you read in `client/` is exactly what runs.
+
+---
+
+## Publishing it
+
+### Just for our class, on one computer
+
+Run `npm start` (or open the desktop app) on one computer and leave it on.
+Everybody else opens `http://THAT-COMPUTERS-ADDRESS:3000` on the same Wi-Fi.
+Find the address with `ipconfig` on Windows, or `ip addr` on macOS and Linux.
+
+Before you do, in `.env`:
+
+- set `NODE_ENV=production`
+- set a long random `JWT_SECRET`
+- set `SEED_DEMO_DATA=false`
+
+### On the internet, so it works from home
+
+Any host that runs Node.js will do. The steps are the same everywhere:
+
+1. Put the project on the host (a Git push, or upload the files)
+2. Run `npm install` then `npm run build`
+3. Start it with `npm start`
+4. Point your domain at it and put it behind `https`
+
+The hub keeps its data in a single SQLite file, so choose a host that gives you
+a **persistent disk**. On hosts with a temporary filesystem the database is
+wiped on every restart. Set `DATABASE_FILE` and `UPLOAD_DIR` to paths on that
+disk.
+
+Things to do before letting anybody in:
+
+- A long random `JWT_SECRET` in `.env` - never the example one
+- `NODE_ENV=production`
+- `SEED_DEMO_DATA=false`, so the example students are not created
+- Sign in as the administrator and change the password
+- Set **Registration** to *Invitation code required* in Admin → Settings
+- Back up `database/grade8hub.db` regularly - that one file is everything
+
+Serving it over `https` also lets everybody install it as an app.
+
+### A note on privacy
+
+This hub holds real messages between real children. Keep it invitation-only,
+keep it off public search engines, and make sure a responsible adult is one of
+the administrators.
 
 ---
 

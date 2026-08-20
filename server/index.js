@@ -42,9 +42,17 @@ app.use(helmet({
       connectSrc: ["'self'", 'ws:', 'wss:'],
       fontSrc: ["'self'", 'data:'],
       objectSrc: ["'none'"],
-      frameAncestors: ["'self'"]
+      frameAncestors: ["'self'"],
+      manifestSrc: ["'self'"],
+      workerSrc: ["'self'"],
+      // The hub is normally reached over plain http on a school network
+      // (for example http://192.168.1.5:3000). Upgrading requests to https
+      // would break every one of them, so it stays switched off.
+      upgradeInsecureRequests: null
     }
   },
+  // Allow classmates on the same network to load pictures and icons.
+  crossOriginResourcePolicy: { policy: 'cross-origin' },
   crossOriginEmbedderPolicy: false
 }));
 app.use(compression());
@@ -92,6 +100,21 @@ app.use('/uploads', (req, res, next) => {
 // ---------------------------------------------------------------------------
 const clientDir = path.join(config.root, 'client');
 const publicDir = path.join(config.root, 'public');
+// The service worker controls every page, so it must be served from the
+// root with no caching of its own - otherwise updates never reach anybody.
+app.get('/sw.js', (_req, res) => {
+  res.set('Service-Worker-Allowed', '/');
+  res.set('Cache-Control', 'no-cache, no-store, must-revalidate');
+  res.type('application/javascript');
+  res.sendFile(path.join(publicDir, 'sw.js'));
+});
+
+app.get('/manifest.webmanifest', (_req, res) => {
+  res.type('application/manifest+json');
+  res.set('Cache-Control', 'no-cache');
+  res.sendFile(path.join(publicDir, 'manifest.webmanifest'));
+});
+
 app.use(express.static(publicDir, { index: false }));
 app.use(express.static(clientDir, { index: false, maxAge: isProduction ? '1h' : 0 }));
 

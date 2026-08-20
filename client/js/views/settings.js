@@ -9,6 +9,7 @@ import { setPageTitle, signOut } from '../components/shell.js';
 import { avatar, emptyState } from '../components/common.js';
 import { toast, modal, confirmDialog } from '../lib/ui.js';
 import { openEditProfile } from './profile.js';
+import { canInstall, isInstalled, promptInstall, pendingCount, flushQueue, isLive, clearOfflineData } from '../lib/offline.js';
 
 const ACCENTS = [
   ['violet', 'Violet'], ['cyan', 'Cyan'], ['emerald', 'Emerald'], ['amber', 'Amber'], ['rose', 'Rose']
@@ -33,6 +34,25 @@ export default async function settings({ mount }) {
           </div>
           <button class="btn btn-sm" id="edit-profile-settings">${icon('edit', 14)} Edit</button>
         </div>
+      </div>
+
+      <div class="card install-card" id="app-card">
+        <div class="card-header">
+          <span class="install-icon">${icon('grid', 20)}</span>
+          <div style="flex:1;min-width:0">
+            <h3 style="margin:0">Grade 8 Hub app</h3>
+            <p class="tiny faint" style="margin:0">Install it and it opens in its own window, with its own icon.</p>
+          </div>
+        </div>
+        <div id="install-area"></div>
+        <div class="divider"></div>
+        <div class="section-title">${icon('refresh', 14)} Offline</div>
+        <p class="small muted" style="margin-bottom:.6rem">
+          The app keeps a copy of your dashboard, homework, announcements, feed and clubs on
+          this device, and every game works with no connection at all. Sending messages and
+          posts still needs the class server.
+        </p>
+        <div id="offline-area"></div>
       </div>
 
       <div class="card">
@@ -97,6 +117,7 @@ export default async function settings({ mount }) {
     </div>`;
 
   loadBlocked(mount);
+  renderAppCard(mount);
 
   mount.addEventListener('click', async (event) => {
     const themeButton = event.target.closest('[data-theme]');
@@ -119,11 +140,32 @@ export default async function settings({ mount }) {
       return;
     }
 
+    if (event.target.closest('#install-app')) {
+      const outcome = await promptInstall();
+      if (outcome === 'accepted') toast('Installed. Look for the Grade 8 Hub icon on your device.', 'success');
+      else if (outcome === 'unavailable') {
+        toast('Use your browser menu and choose "Install app" or "Add to Home Screen".', 'info');
+      }
+      renderAppCard(mount);
+      return;
+    }
+
+    if (event.target.closest('#send-pending')) {
+      const sent = await flushQueue();
+      toast(sent ? `${sent} score${sent === 1 ? '' : 's'} sent.` : 'Nothing was waiting to send.', sent ? 'success' : 'info');
+      renderAppCard(mount);
+      return;
+    }
+
     if (event.target.closest('#edit-profile-settings')) return openEditProfile();
     if (event.target.closest('#change-password')) return openChangePassword();
     if (event.target.closest('#sign-out')) {
-      const yes = await confirmDialog({ title: 'Sign out?', confirmText: 'Sign out' });
-      if (yes) await signOut();
+      const yes = await confirmDialog({
+        title: 'Sign out?',
+        message: 'The copy of the class data saved on this device will be removed.',
+        confirmText: 'Sign out'
+      });
+      if (yes) { clearOfflineData(); await signOut(); }
       return;
     }
 
@@ -219,4 +261,36 @@ export function openChangePassword(forced = false) {
       });
     }
   });
+}
+
+
+/** Draws the install button and the offline status inside Settings. */
+function renderAppCard(mount) {
+  const install = mount.querySelector('#install-area');
+  const offlineArea = mount.querySelector('#offline-area');
+  if (!install || !offlineArea) return;
+
+  if (isInstalled()) {
+    install.innerHTML = `<div class="alert alert-success">${icon('check', 17)}
+      <div>The Grade 8 Hub is installed on this device and running as an app.</div></div>`;
+  } else if (canInstall()) {
+    install.innerHTML = `<button class="btn btn-primary" id="install-app">${icon('upload', 15)} Install the app</button>`;
+  } else {
+    install.innerHTML = `<p class="small muted" style="margin:0">
+      To install it: in Chrome or Edge open the menu and choose <strong>Install app</strong>.
+      On an iPhone or iPad, tap <strong>Share</strong> then <strong>Add to Home Screen</strong>.
+    </p>`;
+  }
+
+  const waiting = pendingCount();
+  offlineArea.innerHTML = `
+    <div class="row row-tight">
+      <span class="badge ${isLive() ? 'badge-success' : 'badge-warning'}">
+        ${icon(isLive() ? 'check' : 'warning', 12)} ${isLive() ? 'Connected to the class server' : 'Offline'}
+      </span>
+      ${waiting
+    ? `<span class="badge badge-info">${waiting} score${waiting === 1 ? '' : 's'} waiting to send</span>
+         <button class="btn btn-sm" id="send-pending">Send now</button>`
+    : '<span class="badge">Nothing waiting to send</span>'}
+    </div>`;
 }

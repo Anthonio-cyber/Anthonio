@@ -4,7 +4,7 @@
   "private": true,
   "description": "Grade 8 Hub - a private community, messaging, gaming, homework and club platform for one Grade 8 class.",
   "type": "module",
-  "main": "server/index.js",
+  "main": "desktop/main.js",
   "engines": {
     "node": ">=18.0.0"
   },
@@ -15,7 +15,13 @@
     "build": "node scripts/build.js",
     "seed": "node server/db/seed.js",
     "reset-db": "node scripts/reset-db.js",
-    "create-admin": "node scripts/create-admin.js"
+    "create-admin": "node scripts/create-admin.js",
+    "app": "electron desktop/main.js",
+    "app:setup": "npm install --no-save --no-audit --no-fund electron@^33.0.0 electron-builder@^25.0.0",
+    "app:build": "electron-builder --publish never",
+    "app:build:win": "electron-builder --win --publish never",
+    "app:build:mac": "electron-builder --mac --publish never",
+    "app:build:linux": "electron-builder --linux --publish never"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
@@ -30,5 +36,69 @@
     "multer": "^2.0.2",
     "nanoid": "^5.0.7",
     "socket.io": "^4.7.5"
-  }
+  },
+  "build": {
+    "appId": "local.grade8hub.app",
+    "productName": "Grade 8 Hub",
+    "copyright": "Grade 8 Hub",
+    "directories": {
+      "output": "dist-app",
+      "buildResources": "public/icons"
+    },
+    "files": [
+      "desktop/**/*",
+      "server/**/*",
+      "client/**/*",
+      "public/**/*",
+      "scripts/**/*",
+      ".env.example",
+      "package.json",
+      "!**/*.map"
+    ],
+    "extraResources": [],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "public/icons/icon-256.png"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Grade 8 Hub"
+    },
+    "mac": {
+      "target": [
+        {
+          "target": "dmg",
+          "arch": [
+            "x64",
+            "arm64"
+          ]
+        }
+      ],
+      "icon": "public/icons/icon-512.png",
+      "category": "public.app-category.education"
+    },
+    "linux": {
+      "target": [
+        "AppImage",
+        "deb"
+      ],
+      "icon": "public/icons/icon-512.png",
+      "category": "Education"
+    },
+    "asar": false,
+    "npmRebuild": false
+  },
+  "author": "Grade 8 Hub",
+  "license": "MIT"
 }
