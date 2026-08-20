@@ -222,7 +222,11 @@ function wireShell() {
     if (action === 'logout') await signOut();
   });
 
-  window.addEventListener('hashchange', renderNav);
+  window.addEventListener('hashchange', () => {
+    renderNav();
+    // Any route change closes the mobile drawer, including the back button.
+    closeDrawer();
+  });
 
   // A short toast whenever something happens while you are on another screen.
   on('notification', (notification) => {

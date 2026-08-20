@@ -289,10 +289,16 @@
 }
 
 /* ---------- Responsive ---------- */
+/* The home page renders its rail twice: once beside the feed for wide
+   screens, once inside the column for narrow ones. Only one is ever shown. */
+.desktop-rail { display: flex; }
+.mobile-rail { display: none; }
+
 @media (max-width: 1180px) {
   .with-rail { grid-template-columns: minmax(0, 1fr); }
   .rail { display: none; }
-  .rail.rail-inline { display: flex; position: static; max-height: none; }
+  .desktop-rail { display: none; }
+  .mobile-rail { display: flex; position: static; max-height: none; top: auto; }
 }
 
 @media (max-width: 900px) {

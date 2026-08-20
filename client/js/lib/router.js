@@ -7,6 +7,7 @@ const routes = [];
 let current = null;
 let notFound = null;
 let beforeEach = null;
+let rootMount = null;
 
 export function route(pattern, loader) {
   const keys = [];
@@ -36,7 +37,20 @@ function parse(fullPath) {
   return { path: path.replace(/\/+$/, '') || '/', query, full: fullPath };
 }
 
-export async function resolve(mount) {
+/**
+ * Swaps the mount for an empty copy of itself.
+ * Views attach delegated listeners to their mount, so reusing the same
+ * element between screens would stack a new listener on every navigation
+ * and fire each handler more than once.
+ */
+function freshMount() {
+  const replacement = rootMount.cloneNode(false);
+  rootMount.replaceWith(replacement);
+  rootMount = replacement;
+  return replacement;
+}
+
+export async function resolve() {
   const { path, query, full } = parse(currentPath());
 
   if (beforeEach) {
@@ -50,25 +64,24 @@ export async function resolve(mount) {
     const params = Object.fromEntries(entry.keys.map((key, i) => [key, decodeURIComponent(match[i + 1])]));
     current?.destroy?.();
     current = null;
-    mount.innerHTML = '';
+    const mount = freshMount();
     const view = await entry.loader({ params, query, path, full, mount });
     current = view || null;
-    document.querySelector('.page')?.scrollTo?.(0, 0);
     window.scrollTo(0, 0);
     return;
   }
 
   current?.destroy?.();
   current = null;
-  mount.innerHTML = '';
-  await notFound?.({ path, mount });
+  await notFound?.({ path, mount: freshMount() });
 }
 
 /** Starts listening for hash changes. */
 export function startRouter(mount) {
-  const run = () => resolve(mount).catch((err) => {
+  rootMount = mount;
+  const run = () => resolve().catch((err) => {
     console.error('[router]', err);
-    mount.innerHTML = `<div class="page page-narrow"><div class="card">
+    rootMount.innerHTML = `<div class="page page-narrow"><div class="card">
       <h2>Something went wrong</h2>
       <p class="muted">${err.message}</p>
       <button class="btn btn-primary" onclick="location.reload()">Reload the page</button>
@@ -79,4 +92,4 @@ export function startRouter(mount) {
   return run;
 }
 
-export const reload = (mount) => resolve(mount);
+export const reload = () => resolve();
