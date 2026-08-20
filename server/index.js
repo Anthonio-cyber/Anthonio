@@ -1,0 +1,150 @@
+import http from 'node:http';
+import path from 'node:path';
+import fs from 'node:fs';
+import express from 'express';
+import helmet from 'helmet';
+import compression from 'compression';
+import cookieParser from 'cookie-parser';
+import rateLimit from 'express-rate-limit';
+
+import { config, isProduction } from './lib/config.js';
+import { migrate, db } from './db/index.js';
+import { attachUser } from './lib/auth.js';
+import { HttpError } from './lib/util.js';
+import { attachRealtime } from './realtime/index.js';
+
+import { router as authRouter } from './routes/auth.js';
+import { router as usersRouter } from './routes/users.js';
+import { router as postsRouter } from './routes/posts.js';
+import { router as messagesRouter } from './routes/messages.js';
+import { router as clubsRouter } from './routes/clubs.js';
+import { router as homeworkRouter } from './routes/homework.js';
+import { router as announcementsRouter } from './routes/announcements.js';
+import { router as notificationsRouter } from './routes/notifications.js';
+import { router as gamesRouter } from './routes/games.js';
+import { router as reportsRouter } from './routes/reports.js';
+import { router as adminRouter } from './routes/admin.js';
+import { router as dashboardRouter } from './routes/dashboard.js';
+
+migrate();
+
+const app = express();
+app.set('trust proxy', 1);
+
+// The whole app is self-hosted, so no external scripts or styles are allowed.
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'"],
+      styleSrc: ["'self'", "'unsafe-inline'"],
+      imgSrc: ["'self'", 'data:', 'blob:'],
+      connectSrc: ["'self'", 'ws:', 'wss:'],
+      fontSrc: ["'self'", 'data:'],
+      objectSrc: ["'none'"],
+      frameAncestors: ["'self'"]
+    }
+  },
+  crossOriginEmbedderPolicy: false
+}));
+app.use(compression());
+app.use(express.json({ limit: '2mb' }));
+app.use(express.urlencoded({ extended: true, limit: '2mb' }));
+app.use(cookieParser());
+
+app.use('/api', rateLimit({
+  windowMs: 60 * 1000,
+  limit: 600,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'You are doing that a little too quickly. Please slow down.' }
+}));
+
+app.use(attachUser);
+
+// ---------------------------------------------------------------------------
+// API
+// ---------------------------------------------------------------------------
+app.get('/api/health', (_req, res) => res.json({ ok: true, name: 'Grade 8 Hub', time: new Date().toISOString() }));
+app.use('/api/auth', authRouter);
+app.use('/api/dashboard', dashboardRouter);
+app.use('/api/users', usersRouter);
+app.use('/api/posts', postsRouter);
+app.use('/api/messages', messagesRouter);
+app.use('/api/clubs', clubsRouter);
+app.use('/api/homework', homeworkRouter);
+app.use('/api/announcements', announcementsRouter);
+app.use('/api/notifications', notificationsRouter);
+app.use('/api/games', gamesRouter);
+app.use('/api/reports', reportsRouter);
+app.use('/api/admin', adminRouter);
+
+// ---------------------------------------------------------------------------
+// Uploaded files - members only, so class pictures stay private.
+// ---------------------------------------------------------------------------
+app.use('/uploads', (req, res, next) => {
+  if (!req.user) return res.status(401).json({ error: 'Please sign in to view this file.' });
+  return next();
+}, express.static(config.uploadDir, { maxAge: '7d', index: false, dotfiles: 'deny' }));
+
+// ---------------------------------------------------------------------------
+// The browser application
+// ---------------------------------------------------------------------------
+const clientDir = path.join(config.root, 'client');
+const publicDir = path.join(config.root, 'public');
+app.use(express.static(publicDir, { index: false }));
+app.use(express.static(clientDir, { index: false, maxAge: isProduction ? '1h' : 0 }));
+
+app.get('*', (req, res, next) => {
+  if (req.path.startsWith('/api/')) return next();
+  return res.sendFile(path.join(clientDir, 'index.html'));
+});
+
+// ---------------------------------------------------------------------------
+// Errors
+// ---------------------------------------------------------------------------
+app.use((req, res) => {
+  res.status(404).json({ error: 'That page or endpoint does not exist.' });
+});
+
+app.use((err, _req, res, _next) => {
+  const status = err.status || err.statusCode || 500;
+  if (err.code === 'LIMIT_FILE_SIZE') {
+    return res.status(413).json({ error: `That file is larger than the ${config.maxUploadMb} MB limit.` });
+  }
+  if (status >= 500) console.error('[grade8-hub]', err);
+  return res.status(status).json({
+    error: status >= 500 && isProduction ? 'Something went wrong on the server.' : err.message,
+    code: err.code || undefined
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Start
+// ---------------------------------------------------------------------------
+const server = http.createServer(app);
+attachRealtime(server);
+
+server.listen(config.port, () => {
+  const line = '='.repeat(58);
+  console.log(`\n${line}`);
+  console.log('  GRADE 8 HUB is running');
+  console.log(line);
+  console.log(`  Open in your browser:  http://localhost:${config.port}`);
+  console.log(`  Database file:         ${path.relative(config.root, config.databaseFile)}`);
+  console.log(`  Mode:                  ${config.env}`);
+  console.log(`${line}\n  Press Ctrl + C to stop the server.\n`);
+});
+
+function shutdown(signal) {
+  console.log(`\nStopping Grade 8 Hub (${signal})...`);
+  server.close(() => {
+    try { db.close(); } catch { /* already closed */ }
+    process.exit(0);
+  });
+  setTimeout(() => process.exit(0), 4000).unref();
+}
+process.on('SIGINT', () => shutdown('SIGINT'));
+process.on('SIGTERM', () => shutdown('SIGTERM'));
+
+export { app, server };

@@ -1,0 +1,34 @@
+{
+  "name": "grade8-hub",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Grade 8 Hub - a private community, messaging, gaming, homework and club platform for one Grade 8 class.",
+  "type": "module",
+  "main": "server/index.js",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "scripts": {
+    "setup": "node scripts/setup.js",
+    "dev": "node scripts/setup.js && node --watch server/index.js",
+    "start": "node scripts/setup.js && node server/index.js",
+    "build": "node scripts/build.js",
+    "seed": "node server/db/seed.js",
+    "reset-db": "node scripts/reset-db.js",
+    "create-admin": "node scripts/create-admin.js"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "better-sqlite3": "^11.5.0",
+    "compression": "^1.7.4",
+    "cookie-parser": "^1.4.6",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "express-rate-limit": "^7.4.0",
+    "helmet": "^7.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "multer": "^2.0.2",
+    "nanoid": "^5.0.7",
+    "socket.io": "^4.7.5"
+  }
+}
