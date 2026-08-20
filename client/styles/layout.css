@@ -301,6 +301,13 @@
   .mobile-rail { display: flex; position: static; max-height: none; top: auto; }
 }
 
+/* Narrow laptops: a slimmer sidebar leaves more room for the content. */
+@media (min-width: 901px) and (max-width: 1150px) {
+  :root { --sidebar-w: 212px; --rail-w: 290px; }
+  .nav-item { padding: .55rem .6rem; font-size: .88rem; }
+  .brand { padding-bottom: .75rem; }
+}
+
 @media (max-width: 900px) {
   .shell { grid-template-columns: 1fr; }
 

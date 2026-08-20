@@ -57,7 +57,7 @@ function heroSection(data) {
       <div class="hero-glow"></div>
       <div class="hero-content">
         <div class="hero-main">
-          <h1>Welcome back, ${esc(user.displayName.split(' ')[0])} <span class="wave">&#128075;</span></h1>
+          <h1>Welcome back, <span class="nowrap">${esc(user.displayName.split(' ')[0])} <span class="wave">&#128075;</span></span></h1>
           <p class="muted">${esc(data.communityName)} - here is what is happening today.</p>
           <div class="row" style="margin-top:.9rem">
             <a class="btn btn-primary" href="#/feed">${icon('feed', 16)} Open the feed</a>
