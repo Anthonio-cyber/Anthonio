@@ -89,7 +89,7 @@
       ],
       "icon": "public/icons/icon-512.png",
       "category": "public.app-category.education",
-      "artifactName": "Grade8Hub-${version}-mac.${ext}"
+      "artifactName": "Grade8Hub-${version}-mac-${arch}.${ext}"
     },
     "linux": {
       "target": [

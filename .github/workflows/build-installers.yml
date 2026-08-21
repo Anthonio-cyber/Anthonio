@@ -112,8 +112,8 @@ jobs:
 
             | Computer | File | What to do |
             |----------|------|------------|
-            | Windows  | `Grade 8 Hub Setup *.exe` | Open it and follow the steps. Windows may warn that the publisher is unknown - choose **More info** then **Run anyway**. |
-            | macOS    | `Grade 8 Hub-*.dmg`       | Open it and drag the app into Applications. First launch: right-click the app and choose **Open**. |
-            | Linux    | `Grade 8 Hub-*.AppImage`  | Right-click it, allow it to run as a program, then open it. |
+            | Windows  | `Grade8Hub-Setup-*-windows.exe` | Open it and follow the steps. Windows may warn that the publisher is unknown - choose **More info** then **Run anyway**. |
+            | macOS    | `Grade8Hub-*-mac-arm64.dmg` (Apple Silicon) or `-mac-x64.dmg` (Intel) | Open it and drag the app into Applications. First launch: right-click the app and choose **Open**. |
+            | Linux    | `Grade8Hub-*-linux.AppImage` | Right-click it, allow it to run as a program, then open it. |
 
             Nothing else needs installing - Node.js is built in.
