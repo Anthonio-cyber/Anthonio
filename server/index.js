@@ -24,6 +24,8 @@ import { router as notificationsRouter } from './routes/notifications.js';
 import { router as gamesRouter } from './routes/games.js';
 import { router as reportsRouter } from './routes/reports.js';
 import { router as adminRouter } from './routes/admin.js';
+import { router as learnRouter } from './routes/learn.js';
+import { router as curriculumRouter } from './routes/curriculum.js';
 import { router as dashboardRouter } from './routes/dashboard.js';
 
 migrate();
@@ -86,6 +88,8 @@ app.use('/api/notifications', notificationsRouter);
 app.use('/api/games', gamesRouter);
 app.use('/api/reports', reportsRouter);
 app.use('/api/admin', adminRouter);
+app.use('/api/learn', learnRouter);
+app.use('/api/curriculum', curriculumRouter);
 
 // ---------------------------------------------------------------------------
 // Uploaded files - members only, so class pictures stay private.

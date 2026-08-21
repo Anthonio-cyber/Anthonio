@@ -4,12 +4,23 @@ import { requireAuth, can } from '../lib/auth.js';
 import { publicUser, selfUser, userById } from '../lib/serialize.js';
 import { HttpError, wrap, clean, parsePage } from '../lib/util.js';
 import { gameStats, grantAchievement } from '../lib/xp.js';
+import { learnerStats } from '../lib/learn.js';
 import { imageUploader, publicUrl } from '../lib/uploads.js';
 import { isOnline, onlineIds } from '../realtime/hub.js';
 import { notify } from '../lib/notify.js';
 
 export const router = express.Router();
 router.use(requireAuth);
+
+/** Every badge on the platform, with the ones this member has earned. */
+function achievementBoard(userId) {
+  return all(`
+    SELECT a.key, a.name, a.description, a.icon, ua.awarded_at
+    FROM achievements a
+    LEFT JOIN user_achievements ua ON ua.achievement_key = a.key AND ua.user_id = ?
+    ORDER BY (ua.awarded_at IS NULL), a.name`, userId)
+    .map((a) => ({ ...a, earned: !!a.awarded_at }));
+}
 
 const USER_SELECT = `
   SELECT u.*, p.avatar_url, p.cover_url, p.bio, p.class_section, p.favourite_subject,
@@ -41,6 +52,17 @@ router.get('/online', wrap(async (req, res) => {
 }));
 
 // ---- One profile -----------------------------------------------------------
+/** The badge wall: what this member has earned and what is still to come. */
+router.get('/me/achievements', wrap(async (req, res) => {
+  const board = achievementBoard(req.user.id);
+  res.json({
+    achievements: board,
+    earned: board.filter((a) => a.earned).length,
+    total: board.length,
+    codingStats: learnerStats(req.user.id)
+  });
+}));
+
 router.get('/:username', wrap(async (req, res) => {
   const key = clean(req.params.username, 40);
   const row = get(`${USER_SELECT} WHERE u.username = ? OR u.id = ?`, key, Number(key) || -1);
@@ -69,6 +91,7 @@ router.get('/:username', wrap(async (req, res) => {
   res.json({
     user: profile,
     stats: { posts: postCount, ...gameStats(row.id) },
+    codingStats: learnerStats(row.id),
     clubs,
     achievements,
     connection: connection

@@ -80,7 +80,8 @@ export const api = {
     connections: () => request('GET', '/users/me/connections'),
     block: (id) => request('POST', `/users/${id}/block`),
     unblock: (id) => request('DELETE', `/users/${id}/block`),
-    blocked: () => request('GET', '/users/me/blocked')
+    blocked: () => request('GET', '/users/me/blocked'),
+    achievements: () => request('GET', '/users/me/achievements')
   },
 
   posts: {
@@ -187,6 +188,70 @@ export const api = {
     list: (query = '') => request('GET', `/reports${query}`),
     resolve: (id, data) => request('POST', `/reports/${id}/resolve`, data),
     accessLog: () => request('GET', '/reports/message-access-log')
+  },
+
+  // ---- Coding Hub: what a learner does ----
+  learn: {
+    overview: () => request('GET', '/learn/overview'),
+    subjects: () => request('GET', '/learn/subjects'),
+    subject: (key) => request('GET', `/learn/subjects/${encodeURIComponent(key)}`),
+    topic: (id) => request('GET', `/learn/topics/${id}`),
+    lesson: (id) => request('GET', `/learn/lessons/${id}`),
+    completeLesson: (id) => request('POST', `/learn/lessons/${id}/complete`),
+    reopenLesson: (id) => request('POST', `/learn/lessons/${id}/reopen`),
+    challenges: () => request('GET', '/learn/challenges'),
+    completeChallenge: (id, solution) => request('POST', `/learn/challenges/${id}/complete`, { solution }),
+    resetChallenge: (id) => request('POST', `/learn/challenges/${id}/reset`),
+    practice: (query = '') => request('GET', `/learn/practice${query}`),
+    answer: (id, answer) => request('POST', `/learn/questions/${id}/answer`, { answer }),
+    question: (id) => request('GET', `/learn/questions/${id}`),
+    bookmarks: () => request('GET', '/learn/bookmarks'),
+    toggleBookmark: (kind, refId) => request('POST', '/learn/bookmarks', { kind, refId }),
+    progress: () => request('GET', '/learn/progress'),
+    history: (query = '') => request('GET', `/learn/history${query}`),
+    search: (term) => request('GET', `/learn/search?q=${encodeURIComponent(term)}`)
+  },
+
+  // ---- Coding Hub: what an administrator manages ----
+  curriculum: {
+    subjects: () => request('GET', '/curriculum/subjects'),
+    createSubject: (data) => request('POST', '/curriculum/subjects', data),
+    updateSubject: (id, data) => request('PATCH', `/curriculum/subjects/${id}`, data),
+    reorderSubjects: (order) => request('POST', '/curriculum/subjects/reorder', { order }),
+    deleteSubject: (id) => request('DELETE', `/curriculum/subjects/${id}`),
+
+    topics: (query = '') => request('GET', `/curriculum/topics${query}`),
+    createTopic: (data) => request('POST', '/curriculum/topics', data),
+    updateTopic: (id, data) => request('PATCH', `/curriculum/topics/${id}`, data),
+    reorderTopics: (order) => request('POST', '/curriculum/topics/reorder', { order }),
+    deleteTopic: (id) => request('DELETE', `/curriculum/topics/${id}`),
+
+    lessons: (query = '') => request('GET', `/curriculum/lessons${query}`),
+    lesson: (id) => request('GET', `/curriculum/lessons/${id}`),
+    createLesson: (data) => request('POST', '/curriculum/lessons', data),
+    updateLesson: (id, data) => request('PATCH', `/curriculum/lessons/${id}`, data),
+    duplicateLesson: (id) => request('POST', `/curriculum/lessons/${id}/duplicate`),
+    reorderLessons: (order) => request('POST', '/curriculum/lessons/reorder', { order }),
+    deleteLesson: (id) => request('DELETE', `/curriculum/lessons/${id}`),
+    lessonVersion: (id, version) => request('GET', `/curriculum/lessons/${id}/versions/${version}`),
+    restoreVersion: (id, version) => request('POST', `/curriculum/lessons/${id}/restore/${version}`),
+
+    createChallenge: (lessonId, data) => request('POST', `/curriculum/lessons/${lessonId}/challenges`, data),
+    updateChallenge: (id, data) => request('PATCH', `/curriculum/challenges/${id}`, data),
+    deleteChallenge: (id) => request('DELETE', `/curriculum/challenges/${id}`),
+
+    questions: (query = '') => request('GET', `/curriculum/questions${query}`),
+    createQuestion: (data) => request('POST', '/curriculum/questions', data),
+    createQuestions: (data) => request('POST', '/curriculum/questions/batch', data),
+    updateQuestion: (id, data) => request('PATCH', `/curriculum/questions/${id}`, data),
+    duplicateQuestion: (id) => request('POST', `/curriculum/questions/${id}/duplicate`),
+    deleteQuestion: (id) => request('DELETE', `/curriculum/questions/${id}`),
+    bulkQuestions: (data) => request('POST', '/curriculum/questions/bulk', data),
+    exportQuestions: (query = '') => request('GET', `/curriculum/questions/export${query}`),
+    importQuestions: (data) => request('POST', '/curriculum/questions/import', data),
+
+    analytics: () => request('GET', '/curriculum/analytics'),
+    learner: (id) => request('GET', `/curriculum/learners/${id}`)
   },
 
   admin: {

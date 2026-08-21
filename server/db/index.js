@@ -4,6 +4,7 @@ import url from 'node:url';
 import Database from 'better-sqlite3';
 import { config } from '../lib/config.js';
 import { PERMISSIONS, ROLES, DEFAULT_SETTINGS, GAME_CATALOGUE, ACHIEVEMENTS } from '../lib/permissions.js';
+import { seedCurriculum } from './seed-curriculum.js';
 
 const here = path.dirname(url.fileURLToPath(import.meta.url));
 
@@ -18,6 +19,7 @@ export function migrate() {
   const schema = fs.readFileSync(path.join(here, 'schema.sql'), 'utf8');
   db.exec(schema);
   loadReferenceData();
+  seedCurriculum(db);
 }
 
 function loadReferenceData() {

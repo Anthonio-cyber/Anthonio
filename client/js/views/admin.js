@@ -13,10 +13,18 @@ import { toast, modal, confirmDialog, contextMenu, promptDialog } from '../lib/u
 import { navigate } from '../lib/router.js';
 import { openHomeworkForm } from './homework.js';
 import { openAnnouncementForm } from './announcements.js';
+import {
+  subjectsSection, topicsSection, lessonsSection, questionsSection, learningSection
+} from './admin-curriculum.js';
 
 const SECTIONS = [
   { key: 'overview',      label: 'Overview',      icon: 'chart',     permission: 'admin.access' },
   { key: 'users',         label: 'Members',       icon: 'users',     permission: 'users.view' },
+  { key: 'subjects',      label: 'Subjects',      icon: 'code',      permission: 'subjects.view' },
+  { key: 'topics',        label: 'Topics',        icon: 'grid',      permission: 'subjects.view' },
+  { key: 'lessons',       label: 'Lessons',       icon: 'book',      permission: 'subjects.view' },
+  { key: 'questions',     label: 'Questions',     icon: 'target',    permission: 'subjects.view' },
+  { key: 'learning',      label: 'Learning',      icon: 'chart',     permission: 'learning.analytics' },
   { key: 'clubs',         label: 'Clubs',         icon: 'flag',      permission: 'clubs.approve' },
   { key: 'homework',      label: 'Homework',      icon: 'book',      permission: 'homework.create' },
   { key: 'announcements', label: 'Announcements', icon: 'megaphone', permission: 'announcements.create' },
@@ -28,7 +36,7 @@ const SECTIONS = [
   { key: 'logs',          label: 'Activity log',  icon: 'clock',     permission: 'logs.view' }
 ];
 
-export default async function admin({ mount, params }) {
+export default async function admin({ mount, params, query = {} }) {
   if (!can('admin.access')) {
     mount.innerHTML = `<div class="page page-narrow">${emptyState({
       iconName: 'lock', title: 'Administrators only',
@@ -63,6 +71,11 @@ export default async function admin({ mount, params }) {
   const panel = mount.querySelector('#admin-panel');
   const renderers = {
     overview: overviewSection, users: usersSection, clubs: clubsSection,
+    subjects: subjectsSection,
+    topics: (node) => topicsSection(node, query),
+    lessons: (node) => lessonsSection(node, query),
+    questions: (node) => questionsSection(node, query),
+    learning: learningSection,
     homework: homeworkSection, announcements: announcementsSection, games: gamesSection,
     reports: reportsSection, invitations: invitationsSection, roles: rolesSection,
     settings: settingsSection, logs: logsSection
@@ -93,7 +106,14 @@ async function overviewSection(panel) {
     { label: 'Pending clubs', value: s.pendingClubRequests, icon: 'clock', tone: s.pendingClubRequests ? 'warning' : '', link: '#/admin/clubs' },
     { label: 'Open reports', value: s.pendingReports, icon: 'shield', tone: s.pendingReports ? 'danger' : '', link: '#/admin/reports' },
     { label: 'Suspended', value: s.suspended, icon: 'block', tone: s.suspended ? 'warning' : '' },
-    { label: 'Open invitations', value: s.openInvitations, icon: 'ticket', link: '#/admin/invitations' }
+    { label: 'Open invitations', value: s.openInvitations, icon: 'ticket', link: '#/admin/invitations' },
+    { label: 'Subjects', value: s.subjects, icon: 'code', link: '#/admin/subjects' },
+    { label: 'Topics', value: s.topics, icon: 'grid', link: '#/admin/topics' },
+    { label: 'Lessons', value: s.lessons, icon: 'book', link: '#/admin/lessons' },
+    { label: 'Draft lessons', value: s.draftLessons, icon: 'edit', tone: s.draftLessons ? 'warning' : '', link: '#/admin/lessons' },
+    { label: 'Questions', value: s.questions, icon: 'target', link: '#/admin/questions' },
+    { label: 'Questions answered', value: s.questionsAnswered, icon: 'chart', link: '#/admin/learning' },
+    { label: 'Lessons completed', value: s.lessonsCompleted, icon: 'check', tone: 'success', link: '#/admin/learning' }
   ];
 
   panel.innerHTML = `
@@ -1163,6 +1183,21 @@ async function settingsSection(panel) {
     </div>
 
     <div class="card">
+      <div class="card-header"><span class="card-title-icon">${icon('code', 17)}</span><h3>Coding Hub</h3></div>
+      <label class="check">
+        <input type="checkbox" data-setting="coding_hub_enabled" ${settings.coding_hub_enabled !== 'false' ? 'checked' : ''}>
+        <span>Coding Hub is open to learners</span>
+      </label>
+      <div class="field"><label>Name</label><input class="input" data-setting="coding_hub_name" value="${esc(settings.coding_hub_name || '')}"></div>
+      <div class="field"><label>Tagline</label><input class="input" data-setting="coding_hub_tagline" value="${esc(settings.coding_hub_tagline || '')}"></div>
+      <div class="field">
+        <label>Questions per practice set</label>
+        <input class="input" type="number" min="1" max="50" data-setting="practice_question_count" value="${esc(settings.practice_question_count)}">
+        <span class="hint">The default a learner sees on the Practice screen; they can change it themselves.</span>
+      </div>
+    </div>
+
+    <div class="card">
       <div class="card-header"><span class="card-title-icon">${icon('zap', 17)}</span><h3>XP rewards</h3></div>
       <p class="small muted">Game XP is only for the Gaming Hub. It never affects school grades.</p>
       <div class="grid grid-3">
@@ -1171,7 +1206,13 @@ async function settingsSection(panel) {
         <div class="field"><label>Win a tournament</label><input class="input" type="number" data-setting="xp_tournament" value="${esc(settings.xp_tournament)}"></div>
         <div class="field"><label>Write a post</label><input class="input" type="number" data-setting="xp_post" value="${esc(settings.xp_post)}"></div>
         <div class="field"><label>Complete homework</label><input class="input" type="number" data-setting="xp_homework_complete" value="${esc(settings.xp_homework_complete)}"></div>
+        <div class="field"><label>Finish a lesson</label><input class="input" type="number" data-setting="xp_lesson_complete" value="${esc(settings.xp_lesson_complete)}"></div>
+        <div class="field"><label>Answer a question correctly</label><input class="input" type="number" data-setting="xp_correct_answer" value="${esc(settings.xp_correct_answer)}"></div>
+        <div class="field"><label>Finish a coding challenge</label><input class="input" type="number" data-setting="xp_coding_challenge" value="${esc(settings.xp_coding_challenge)}"></div>
       </div>
+      <p class="small faint">
+        A lesson or challenge that has its own XP value uses that instead. These are the fallbacks.
+      </p>
     </div>
 
     <button class="btn btn-primary btn-lg" id="save-settings">${icon('check', 16)} Save all settings</button>`;

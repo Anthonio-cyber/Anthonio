@@ -12,13 +12,19 @@ import { toast, contextMenu } from '../lib/ui.js';
 
 const NAV = [
   { path: '/',              label: 'Home',          icon: 'home',      mobile: true },
-  { path: '/feed',          label: 'Feed',          icon: 'feed',      mobile: true },
+  { path: '/subjects',      label: 'Coding Hub',    icon: 'code',      mobile: true,
+    also: ['/subject/', '/topic/', '/lesson/'] },
+  { path: '/practice',      label: 'Practice',      icon: 'target' },
+  { path: '/progress',      label: 'My progress',   icon: 'chart' },
+  { path: '/bookmarks',     label: 'Bookmarks',     icon: 'bookmark' },
+  { path: '/feed',          label: 'Feed',          icon: 'feed' },
   { path: '/messages',      label: 'Messages',      icon: 'message',   mobile: true, badge: 'messages' },
   { path: '/games',         label: 'Games',         icon: 'game',      mobile: true },
   { path: '/clubs',         label: 'Clubs',         icon: 'users' },
   { path: '/announcements', label: 'Announcements', icon: 'megaphone' },
   { path: '/homework',      label: 'Homework',      icon: 'book' },
   { path: '/leaderboard',   label: 'Leaderboard',   icon: 'trophy' },
+  { path: '/achievements',  label: 'Achievements',  icon: 'award' },
   { path: '/profile',       label: 'Profile',       icon: 'user' },
   { path: '/notifications', label: 'Notifications', icon: 'bell', badge: 'notifications' },
   { path: '/settings',      label: 'Settings',      icon: 'settings' }
@@ -95,7 +101,11 @@ function navItems() {
 
 function renderNav() {
   const path = currentPath().split('?')[0];
-  const isActive = (item) => (item.path === '/' ? path === '/' : path.startsWith(item.path));
+  const isActive = (item) => {
+    if (item.path === '/') return path === '/';
+    if (path.startsWith(item.path)) return true;
+    return (item.also || []).some((prefix) => path.startsWith(prefix));
+  };
 
   const main = document.getElementById('nav-main');
   if (main) {

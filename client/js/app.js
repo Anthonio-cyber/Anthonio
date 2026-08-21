@@ -93,6 +93,15 @@ function registerRoutes() {
   lazy('/post/:id',       () => import('./views/post.js'));
   lazy('/messages',       () => import('./views/messages.js'));
   lazy('/messages/:id',   () => import('./views/messages.js'));
+  lazy('/subjects',       () => import('./views/subjects.js'));
+  lazy('/subject/:key',   () => import('./views/subjects.js'));
+  lazy('/topic/:id',      () => import('./views/topic.js'));
+  lazy('/lesson/:id',     () => import('./views/lesson.js'));
+  lazy('/practice',       () => import('./views/practice.js'));
+  lazy('/progress',       () => import('./views/progress.js'));
+  lazy('/history',        () => import('./views/history.js'));
+  lazy('/bookmarks',      () => import('./views/bookmarks.js'));
+  lazy('/achievements',   () => import('./views/achievements.js'));
   lazy('/games',          () => import('./views/games.js'));
   lazy('/games/:key',     () => import('./views/game-play.js'));
   lazy('/clubs',          () => import('./views/clubs.js'));

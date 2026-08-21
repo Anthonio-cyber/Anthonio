@@ -420,3 +420,140 @@ CREATE TABLE IF NOT EXISTS settings (
   key   TEXT PRIMARY KEY,
   value TEXT NOT NULL
 );
+
+-- ==========================================================
+-- Coding Hub - the learning platform
+-- Subjects -> topics -> lessons -> challenges, plus the question
+-- bank, everybody's progress and their bookmarks.
+-- ==========================================================
+
+CREATE TABLE IF NOT EXISTS subjects (
+  id          INTEGER PRIMARY KEY AUTOINCREMENT,
+  slug        TEXT NOT NULL UNIQUE COLLATE NOCASE,
+  name        TEXT NOT NULL,
+  description TEXT DEFAULT '',
+  icon        TEXT DEFAULT 'code',
+  colour      TEXT DEFAULT 'violet',
+  cover_url   TEXT DEFAULT '',
+  position    INTEGER NOT NULL DEFAULT 0,
+  published   INTEGER NOT NULL DEFAULT 1,
+  created_by  INTEGER REFERENCES users(id) ON DELETE SET NULL,
+  created_at  TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+CREATE TABLE IF NOT EXISTS topics (
+  id          INTEGER PRIMARY KEY AUTOINCREMENT,
+  subject_id  INTEGER NOT NULL REFERENCES subjects(id) ON DELETE CASCADE,
+  slug        TEXT NOT NULL,
+  name        TEXT NOT NULL,
+  description TEXT DEFAULT '',
+  position    INTEGER NOT NULL DEFAULT 0,
+  published   INTEGER NOT NULL DEFAULT 1,
+  created_at  TEXT NOT NULL DEFAULT (datetime('now')),
+  UNIQUE (subject_id, slug)
+);
+CREATE INDEX IF NOT EXISTS idx_topics_subject ON topics(subject_id, position);
+
+CREATE TABLE IF NOT EXISTS lessons (
+  id          INTEGER PRIMARY KEY AUTOINCREMENT,
+  topic_id    INTEGER NOT NULL REFERENCES topics(id) ON DELETE CASCADE,
+  title       TEXT NOT NULL,
+  summary     TEXT DEFAULT '',
+  objectives  TEXT DEFAULT '',                -- one learning objective per line
+  body        TEXT NOT NULL DEFAULT '[]',     -- JSON array of lesson blocks
+  minutes     INTEGER NOT NULL DEFAULT 10,
+  xp_reward   INTEGER NOT NULL DEFAULT 25,
+  position    INTEGER NOT NULL DEFAULT 0,
+  status      TEXT NOT NULL DEFAULT 'draft',  -- draft | published
+  version     INTEGER NOT NULL DEFAULT 1,
+  created_by  INTEGER REFERENCES users(id) ON DELETE SET NULL,
+  created_at  TEXT NOT NULL DEFAULT (datetime('now')),
+  updated_at  TEXT NOT NULL DEFAULT (datetime('now'))
+);
+CREATE INDEX IF NOT EXISTS idx_lessons_topic ON lessons(topic_id, position);
+
+-- Every save keeps the previous wording so an admin can look back or restore it.
+CREATE TABLE IF NOT EXISTS lesson_versions (
+  id         INTEGER PRIMARY KEY AUTOINCREMENT,
+  lesson_id  INTEGER NOT NULL REFERENCES lessons(id) ON DELETE CASCADE,
+  version    INTEGER NOT NULL,
+  title      TEXT NOT NULL,
+  summary    TEXT DEFAULT '',
+  objectives TEXT DEFAULT '',
+  body       TEXT NOT NULL DEFAULT '[]',
+  note       TEXT DEFAULT '',
+  saved_by   INTEGER REFERENCES users(id) ON DELETE SET NULL,
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  UNIQUE (lesson_id, version)
+);
+
+CREATE TABLE IF NOT EXISTS challenges (
+  id              INTEGER PRIMARY KEY AUTOINCREMENT,
+  lesson_id       INTEGER NOT NULL REFERENCES lessons(id) ON DELETE CASCADE,
+  title           TEXT NOT NULL,
+  description     TEXT DEFAULT '',
+  requirements    TEXT DEFAULT '',            -- one requirement per line
+  starter_code    TEXT DEFAULT '',
+  expected_result TEXT DEFAULT '',
+  hints           TEXT DEFAULT '',            -- one hint per line
+  difficulty      TEXT NOT NULL DEFAULT 'beginner',
+  points          INTEGER NOT NULL DEFAULT 20,
+  position        INTEGER NOT NULL DEFAULT 0
+);
+
+CREATE TABLE IF NOT EXISTS challenge_completions (
+  challenge_id INTEGER NOT NULL REFERENCES challenges(id) ON DELETE CASCADE,
+  user_id      INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  solution     TEXT DEFAULT '',
+  completed_at TEXT NOT NULL DEFAULT (datetime('now')),
+  PRIMARY KEY (challenge_id, user_id)
+);
+
+CREATE TABLE IF NOT EXISTS questions (
+  id           INTEGER PRIMARY KEY AUTOINCREMENT,
+  topic_id     INTEGER NOT NULL REFERENCES topics(id) ON DELETE CASCADE,
+  type         TEXT NOT NULL DEFAULT 'multiple_choice',
+  prompt       TEXT NOT NULL,
+  code         TEXT DEFAULT '',
+  options_json TEXT NOT NULL DEFAULT '[]',
+  answer       TEXT NOT NULL DEFAULT '',      -- index for choices, text for the rest
+  explanation  TEXT DEFAULT '',
+  difficulty   TEXT NOT NULL DEFAULT 'beginner',
+  points       INTEGER NOT NULL DEFAULT 10,
+  tags         TEXT DEFAULT '',
+  published    INTEGER NOT NULL DEFAULT 1,
+  created_by   INTEGER REFERENCES users(id) ON DELETE SET NULL,
+  created_at   TEXT NOT NULL DEFAULT (datetime('now')),
+  updated_at   TEXT NOT NULL DEFAULT (datetime('now'))
+);
+CREATE INDEX IF NOT EXISTS idx_questions_topic ON questions(topic_id, difficulty);
+
+CREATE TABLE IF NOT EXISTS question_attempts (
+  id             INTEGER PRIMARY KEY AUTOINCREMENT,
+  question_id    INTEGER NOT NULL REFERENCES questions(id) ON DELETE CASCADE,
+  user_id        INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  answer         TEXT DEFAULT '',
+  correct        INTEGER NOT NULL DEFAULT 0,
+  points_awarded INTEGER NOT NULL DEFAULT 0,
+  created_at     TEXT NOT NULL DEFAULT (datetime('now'))
+);
+CREATE INDEX IF NOT EXISTS idx_attempts_user ON question_attempts(user_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_attempts_question ON question_attempts(question_id);
+
+CREATE TABLE IF NOT EXISTS lesson_progress (
+  lesson_id    INTEGER NOT NULL REFERENCES lessons(id) ON DELETE CASCADE,
+  user_id      INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  status       TEXT NOT NULL DEFAULT 'opened',   -- opened | completed
+  opened_at    TEXT NOT NULL DEFAULT (datetime('now')),
+  completed_at TEXT,
+  PRIMARY KEY (lesson_id, user_id)
+);
+CREATE INDEX IF NOT EXISTS idx_lesson_progress_user ON lesson_progress(user_id, opened_at DESC);
+
+CREATE TABLE IF NOT EXISTS learn_bookmarks (
+  user_id    INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  kind       TEXT NOT NULL,                    -- lesson | topic | question | challenge
+  ref_id     INTEGER NOT NULL,
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  PRIMARY KEY (user_id, kind, ref_id)
+);

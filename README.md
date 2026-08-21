@@ -1,8 +1,10 @@
 # Grade 8 Hub
 
-A private community platform for one Grade 8 class. It brings the class feed,
-private messaging, clubs, homework, announcements, a gaming hub, leaderboards
-and a full administration area together in one application.
+A private community and coding-learning platform for one Grade 8 class. It
+brings the **Coding Hub** — subjects, lessons, coding challenges and a question
+bank — together with the class feed, private messaging, clubs, homework,
+announcements, a gaming hub, leaderboards and a full administration area, all
+in one application.
 
 The hub is **private by design**. Nobody can see anything until they sign in,
 and an administrator controls who is allowed to join.
@@ -19,7 +21,12 @@ There are **no AI features** anywhere in this project.
 
 | Area | What it does |
 |---|---|
-| **Home** | Welcome dashboard with homework due, the latest announcement, unread messages, your clubs, your streak, recent posts, events and who is online |
+| **Coding Hub** | Learn to code: HTML, CSS, JavaScript, Python, Git & GitHub and React. Subjects hold topics, topics hold detailed lessons, every lesson can hold a coding challenge |
+| **Lessons** | Written by administrators block by block: headings, paragraphs, code samples, lists, tables, notes, warnings and information boxes. Every save keeps the previous version so it can be restored |
+| **Practice** | A question bank with seven question types and three difficulty levels. Filter by subject, difficulty or type, answer, and see immediately whether you were right and why |
+| **Progress** | Lessons completed, questions answered, accuracy, correct streak, progress per subject, and the topics you find hardest |
+| **Bookmarks & history** | Save any lesson, topic, challenge or question, and look back over everything you have opened and answered |
+| **Home** | Welcome dashboard with "continue learning", homework due, the latest announcement, unread messages, your clubs, your streak, recent posts, events and who is online |
 | **Feed** | Class posts: text, pictures, polls, homework questions, study discussions and class announcements, with likes, comments, sharing, saving and reporting |
 | **Messages** | One-to-one and club group chats with live delivery, typing indicators, read receipts, online status, reactions, replies, editing, deleting and blocking |
 | **Games** | Nine browser games. Tic-Tac-Toe, Rock Paper Scissors, Snake, Memory Match, Reaction Test, Number Guessing, Quiz Battle, Typing Challenge and Connect Four |
@@ -29,7 +36,85 @@ There are **no AI features** anywhere in this project.
 | **Announcements** | Priority levels, audiences, pinning, scheduling and expiry |
 | **Leaderboard** | Overall, Games, Learning and Weekly boards, which an administrator can switch off |
 | **Notifications** | Live notifications with an unread counter for everything that happens |
-| **Admin** | Members, clubs, homework, announcements, games, moderation queue, invitations, roles, settings and an activity log |
+| **Admin** | Members, subjects, topics, lessons, the question bank, learning analytics, clubs, homework, announcements, games, moderation queue, invitations, roles, settings and an activity log |
+
+---
+
+## The Coding Hub
+
+The Coding Hub is the learning half of the platform. It is built around four
+levels: **subject → topic → lesson → challenge**, with a separate question bank
+attached to every topic.
+
+### What ships with it
+
+| Subject | Topics | Starter lessons | Starter questions |
+|---|---|---|---|
+| HTML | 25 | 4 | 42 |
+| CSS | 26 | 3 | 39 |
+| JavaScript | 40 | 4 | 42 |
+| Python | 30 | 3 | 39 |
+| Git & GitHub | 20 | 2 | 24 |
+| React | 20 | 2 | 24 |
+| **Total** | **161** | **18** | **210** |
+
+All 161 topics from the specification exist and are ready to be filled in. The
+18 lessons and 210 questions are a hand-written starting point, not the finished
+course — the specification aims for 100 questions per topic, and the tools below
+exist so administrators can build up to that at their own pace. The admin
+**Learning** screen lists the topics with the fewest questions so you always know
+what to write next.
+
+**Nothing on this platform is AI-generated.** Every lesson, example and question
+is written by a person, and there is no endpoint anywhere that generates content.
+
+### For learners
+
+- **Subjects** (`#/subjects`) — pick a subject and see how far through it you are
+- **Topics** — the lessons in order, plus how many questions are waiting
+- **Lessons** — objectives, explanations, code samples, tables, notes and
+  warnings, then a coding challenge with requirements, starter code and hints
+- **Practice** (`#/practice`) — a set of questions filtered however you like;
+  answer one and the result and explanation appear straight away
+- **Progress** (`#/progress`), **History** (`#/history`),
+  **Bookmarks** (`#/bookmarks`) and **Achievements** (`#/achievements`)
+
+XP comes from finishing lessons, answering questions correctly and completing
+challenges. Badges include First Lesson, 100/500/1,000 Questions, Sharp Shooter
+and a Master badge for each subject. Every XP amount is adjustable in
+**Admin → Settings**.
+
+### For administrators
+
+| Screen | What you can do |
+|---|---|
+| **Admin → Subjects** | Create, edit, reorder, hide, publish and delete subjects, each with its own icon and colour |
+| **Admin → Topics** | The same for topics, filtered by subject, showing how many questions each one still needs |
+| **Admin → Lessons** | Write lessons block by block, save drafts, publish, duplicate, reorder, attach coding challenges, and restore any earlier version |
+| **Admin → Questions** | The full bank: filter by subject, topic, difficulty, type or status; edit one at a time, write a whole set in one sitting, select many and change them together, and import or export JSON |
+| **Admin → Learning** | Lesson and question totals, average accuracy, hardest topics, most studied subjects, top learners, and the topics that still need content |
+
+Bulk actions on selected questions: publish, unpublish, change difficulty,
+change points, move to another topic, delete.
+
+### Question types
+
+Seven types, each with three difficulty levels (beginner, intermediate,
+advanced): multiple choice, true/false, fill in the blank, code, "what is the
+output?", find the bug, and scenario.
+
+**Marking always happens on the server.** A learner is never sent the correct
+answer to a question they have not answered yet, so the answer cannot be read
+out of the page, and points cannot be awarded by editing a request. Free-text
+answers ignore capitals and surrounding spaces, and can accept several
+alternatives separated by a vertical bar (`</p>|&lt;/p&gt;`).
+
+### Where the starting content lives
+
+`server/db/curriculum.js` holds the subject and topic structure, and
+`server/db/content/*.js` holds the lessons and questions. They are copied into
+the database the first time the server starts and then never again — so anything
+an administrator edits, hides or deletes stays that way after a restart.
 
 ---
 
@@ -277,6 +362,10 @@ Tables include `users`, `profiles`, `roles`, `permissions`, `role_permissions`,
 `user_achievements`, `notifications`, `reports`, `blocked_users`,
 `activity_logs`, `invitations` and `settings`.
 
+The Coding Hub adds `subjects`, `topics`, `lessons`, `lesson_versions`,
+`challenges`, `challenge_completions`, `questions`, `question_attempts`,
+`lesson_progress` and `learn_bookmarks`.
+
 **Backing up is simply copying `database/grade8hub.db` somewhere safe.**
 
 To wipe everything and start again:
@@ -312,11 +401,11 @@ Six roles, each with its own permissions:
 
 | Role | Can do |
 |---|---|
-| **Student** | Post, comment, message, join and create clubs, play games |
+| **Student** | Learn, practise, post, comment, message, join and create clubs, play games |
 | **Club Admin** | Everything a student can, plus running their own clubs |
 | **Moderator** | Handle reports, moderate posts, restrict members |
-| **Teacher** | Set homework, publish announcements, see completion statistics |
-| **Admin** | Manage members, clubs, invitations, games and moderation |
+| **Teacher** | Write subjects, topics, lessons and questions, set homework, publish announcements, see completion statistics and learning analytics |
+| **Admin** | Everything a teacher can, plus deleting subjects, and managing members, clubs, invitations, games and moderation |
 | **Super Admin** | Everything, including community settings and permissions |
 
 Permissions are stored in the database and checked **on the server for every
@@ -366,7 +455,7 @@ This is a private class network, and it is built that way:
 grade8-hub/
 ├── client/                 the browser application
 │   ├── index.html
-│   ├── styles/             base, layout, components, pages, games
+│   ├── styles/             base, layout, components, pages, games, learn
 │   └── js/
 │       ├── app.js          entry point
 │       ├── lib/            api, router, store, ui, icons, helpers
@@ -376,7 +465,9 @@ grade8-hub/
 ├── server/                 the backend
 │   ├── index.js            express app and start-up
 │   ├── db/                 schema, connection, example data
-│   ├── lib/                auth, permissions, uploads, XP, game rules
+│   │   ├── curriculum.js   the six starting subjects and their topics
+│   │   └── content/        the starting lessons and questions, per subject
+│   ├── lib/                auth, permissions, uploads, XP, game rules, learning
 │   ├── routes/             one file per area of the API
 │   └── realtime/           the live layer
 ├── database/               the SQLite file lives here

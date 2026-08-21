@@ -15,7 +15,7 @@
    is wiped when you sign out.
    ========================================================== */
 
-const VERSION = 'g8h-v2';
+const VERSION = 'g8h-v3';
 const SHELL_CACHE = `${VERSION}-shell`;
 const DATA_CACHE = `${VERSION}-data`;
 
@@ -25,18 +25,24 @@ const SHELL = [
   '/icons/icon-192.png', '/icons/icon-512.png', '/icons/icon-64.png',
 
   '/styles/base.css', '/styles/layout.css', '/styles/components.css',
-  '/styles/pages.css', '/styles/games.css',
+  '/styles/pages.css', '/styles/games.css', '/styles/learn.css',
 
   '/js/app.js',
   '/js/lib/api.js', '/js/lib/dom.js', '/js/lib/icons.js', '/js/lib/router.js',
   '/js/lib/store.js', '/js/lib/ui.js', '/js/lib/offline.js',
   '/js/components/shell.js', '/js/components/common.js', '/js/components/post-card.js',
+  '/js/components/learn.js',
 
   '/js/views/auth.js', '/js/views/home.js', '/js/views/feed.js', '/js/views/post.js',
   '/js/views/messages.js', '/js/views/games.js', '/js/views/game-play.js',
   '/js/views/clubs.js', '/js/views/club.js', '/js/views/homework.js',
   '/js/views/announcements.js', '/js/views/leaderboard.js', '/js/views/profile.js',
   '/js/views/notifications.js', '/js/views/settings.js', '/js/views/admin.js',
+  '/js/views/admin-curriculum.js',
+
+  '/js/views/subjects.js', '/js/views/topic.js', '/js/views/lesson.js',
+  '/js/views/practice.js', '/js/views/progress.js', '/js/views/history.js',
+  '/js/views/bookmarks.js', '/js/views/achievements.js',
 
   '/js/games/tictactoe.js', '/js/games/connect-four.js', '/js/games/rps.js',
   '/js/games/snake.js', '/js/games/memory.js', '/js/games/reaction.js',
@@ -51,7 +57,8 @@ const SHELL = [
 const CACHEABLE_API = [
   '/api/auth/me', '/api/auth/config', '/api/dashboard',
   '/api/homework', '/api/announcements', '/api/posts',
-  '/api/clubs', '/api/games', '/api/users', '/api/notifications'
+  '/api/clubs', '/api/games', '/api/users', '/api/notifications',
+  '/api/learn/overview', '/api/learn/subjects', '/api/learn/progress'
 ];
 
 const isCacheableApi = (pathname) =>
