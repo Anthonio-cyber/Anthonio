@@ -275,10 +275,27 @@ function renderAppCard(mount) {
       <div>The Grade 8 Hub is installed on this device and running as an app.</div></div>`;
   } else if (canInstall()) {
     install.innerHTML = `<button class="btn btn-primary" id="install-app">${icon('upload', 15)} Install the app</button>`;
+  } else if (!window.isSecureContext) {
+    // Browsers only allow installing over HTTPS or on localhost. Opening the
+    // hub over plain http:// at the teacher's address blocks installing AND
+    // offline mode, so say that plainly instead of showing a dead button.
+    install.innerHTML = `
+      <div class="alert alert-warning">${icon('warning', 17)}
+        <div>
+          <strong>Installing is blocked on this address.</strong>
+          Your browser only allows apps to be installed from <code>https://</code>
+          or from <code>localhost</code>, and you opened the hub over
+          <code>${esc(window.location.protocol)}//${esc(window.location.host)}</code>.
+          <br><br>
+          Use the <strong>desktop app installer</strong> instead - it has its own
+          window and works with no browser at all. Ask whoever set up the hub for it.
+        </div>
+      </div>`;
   } else {
     install.innerHTML = `<p class="small muted" style="margin:0">
       To install it: in Chrome or Edge open the menu and choose <strong>Install app</strong>.
       On an iPhone or iPad, tap <strong>Share</strong> then <strong>Add to Home Screen</strong>.
+      <br>If you do not see that option, use the desktop app installer instead.
     </p>`;
   }
 

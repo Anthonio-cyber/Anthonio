@@ -21,7 +21,8 @@
     "app:build": "electron-builder --publish never",
     "app:build:win": "electron-builder --win --publish never",
     "app:build:mac": "electron-builder --mac --publish never",
-    "app:build:linux": "electron-builder --linux --publish never"
+    "app:build:linux": "electron-builder --linux --publish never",
+    "app:rebuild": "electron-rebuild -f -w better-sqlite3"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
@@ -97,7 +98,7 @@
       "category": "Education"
     },
     "asar": false,
-    "npmRebuild": false
+    "npmRebuild": true
   },
   "author": "Grade 8 Hub",
   "license": "MIT"

@@ -133,7 +133,26 @@ hub works with **no network at all**. It keeps its database, uploads and its
 own sign-in secret in your normal application-data folder, so reinstalling or
 updating the app never loses the class data.
 
-Node.js must be installed for the desktop app too - it is what runs the server.
+**The installed app does not need Node.js.** It carries its own copy, so it
+runs on a computer with nothing else installed. (Node.js is only needed to
+*build* the installer, or to run the hub from source with `npm start`.)
+
+### Getting installers without owning every computer
+
+You do not need a Windows machine to make a Windows installer. GitHub can
+build all three for you:
+
+1. Push this project to GitHub
+2. Open the **Actions** tab and run **Build installers**
+   (or push a version tag: `git tag v1.0.0 && git push --tags`)
+3. When it finishes, download them from **Artifacts** at the bottom of the run
+
+Tagging also creates a **Release** with all three installers attached, which
+is the easiest way to hand the app to classmates - just send them the link.
+
+The installers are unsigned, because code-signing certificates cost money.
+Windows will say the publisher is unknown: choose **More info** then
+**Run anyway**. On macOS, right-click the app and choose **Open** the first time.
 
 ---
 

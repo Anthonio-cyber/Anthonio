@@ -63,10 +63,9 @@ function userDataPaths() {
 /**
  * Runs the hub's server as its own process rather than inside the window.
  *
- * In development that is the Node.js already installed on the computer, which
- * means the database module never has to be rebuilt and `npm start` keeps
- * working exactly as before. In a packaged app there is no system Node, so the
- * app runs its own binary in Node mode instead.
+ * An installed app runs its own bundled binary in Node mode, so the computer
+ * does NOT need Node.js installed for the app to work. When running from
+ * source during development it uses the Node.js already on the computer.
  */
 async function startServer() {
   serverPort = await findFreePort(serverPort);
@@ -84,11 +83,19 @@ async function startServer() {
     env.SEED_DEMO_DATA = 'false';
   }
 
-  // The server always runs on the Node.js installed on this computer.
-  // That keeps one single build of the database module for both the desktop
-  // app and `npm start`, so neither ever has to be recompiled.
-  const command = process.platform === 'win32' ? 'node.exe' : 'node';
-  const args = [serverEntry];
+  // An installed app must not depend on anything else being on the computer,
+  // so it runs its OWN bundled binary in Node mode. During development there
+  // is no bundle yet, so the Node.js used to launch Electron is used instead.
+  let command;
+  let args;
+  if (app.isPackaged) {
+    command = process.execPath;          // the app's own executable
+    args = [serverEntry];
+    env.ELECTRON_RUN_AS_NODE = '1';      // ...told to behave as plain Node.js
+  } else {
+    command = process.platform === 'win32' ? 'node.exe' : 'node';
+    args = [serverEntry];
+  }
 
   serverProcess = spawn(command, args, { cwd: ROOT, env, stdio: ['ignore', 'pipe', 'pipe'] });
   serverProcess.stdout.on('data', (d) => process.stdout.write(`[hub] ${d}`));
@@ -107,7 +114,9 @@ async function startServer() {
   const deadline = Date.now() + 30_000;
   while (Date.now() < deadline) {
     if (spawnError) {
-      throw new Error('Node.js could not be started.\n\nThe Grade 8 Hub needs Node.js. Install it from https://nodejs.org, then open the app again.');
+      throw new Error(app.isPackaged
+        ? 'The Grade 8 Hub could not start its own class server. Please reinstall the app.'
+        : 'Node.js could not be started.\n\nRunning from source needs Node.js. Install it from https://nodejs.org, then try again.');
     }
     try {
       const response = await fetch(`http://127.0.0.1:${serverPort}/api/health`);
