@@ -5,7 +5,7 @@
 import { esc, delegate } from '../lib/dom.js';
 import { icon } from '../lib/icons.js';
 import { api } from '../lib/api.js';
-import { store, can } from '../lib/store.js';
+import { can } from '../lib/store.js';
 import { setPageTitle } from '../components/shell.js';
 import { emptyState } from '../components/common.js';
 import { toast } from '../lib/ui.js';
