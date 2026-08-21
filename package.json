@@ -95,11 +95,15 @@
         "deb"
       ],
       "icon": "public/icons/icon-512.png",
-      "category": "Education"
+      "category": "Education",
+      "maintainer": "Anthonio <anthonio@users.noreply.github.com>"
     },
     "asar": false,
     "npmRebuild": true
   },
-  "author": "Grade 8 Hub",
+  "author": {
+    "name": "Anthonio",
+    "email": "anthonio@users.noreply.github.com"
+  },
   "license": "MIT"
 }
