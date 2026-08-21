@@ -1,6 +1,6 @@
 {
   "name": "grade8-hub",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "private": true,
   "description": "Grade 8 Hub - a private coding-learning, community, messaging, gaming, homework and club platform for one Grade 8 class.",
   "type": "module",

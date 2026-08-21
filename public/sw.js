@@ -15,7 +15,7 @@
    is wiped when you sign out.
    ========================================================== */
 
-const VERSION = 'g8h-v3';
+const VERSION = 'g8h-v4';
 const SHELL_CACHE = `${VERSION}-shell`;
 const DATA_CACHE = `${VERSION}-data`;
 
@@ -27,7 +27,7 @@ const SHELL = [
   '/styles/base.css', '/styles/layout.css', '/styles/components.css',
   '/styles/pages.css', '/styles/games.css', '/styles/learn.css',
 
-  '/js/app.js',
+  '/js/app.js', '/js/update-guard.js',
   '/js/lib/api.js', '/js/lib/dom.js', '/js/lib/icons.js', '/js/lib/router.js',
   '/js/lib/store.js', '/js/lib/ui.js', '/js/lib/offline.js',
   '/js/components/shell.js', '/js/components/common.js', '/js/components/post-card.js',
@@ -138,19 +138,26 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // ---- Scripts, styles, icons: cache first, refresh quietly ----
+  // ---- Scripts, styles, icons ----
+  // The server wins whenever it can be reached, and the cached copy is
+  // only used when it cannot. Serving code from the cache first meant the
+  // first launch after an update ran the PREVIOUS version's JavaScript,
+  // so new screens appeared to be missing until the page was reloaded.
+  // These files are tiny and served from the same computer or the local
+  // network, so going to the server first costs almost nothing.
   event.respondWith((async () => {
     const cache = await caches.open(SHELL_CACHE);
-    const cached = await cache.match(request);
-
-    const network = fetch(request).then((response) => {
+    try {
+      const response = await fetch(request);
       if (response && response.ok && response.type === 'basic') {
         cache.put(request, response.clone()).catch(() => {});
       }
       return response;
-    }).catch(() => null);
-
-    return cached || (await network) || new Response('', { status: 504 });
+    } catch {
+      // Offline: fall back to the last copy saved on this device.
+      const cached = await cache.match(request);
+      return cached || new Response('', { status: 504 });
+    }
   })());
 });
 
