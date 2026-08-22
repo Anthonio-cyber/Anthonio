@@ -40,9 +40,26 @@ There are **no AI features** anywhere in this project.
 
 ---
 
-## The Coding Hub
+## Two applications in this repository
 
-The Coding Hub is the learning half of the platform. It is built around four
+| Application | Where | What it is |
+|---|---|---|
+| **Grade 8 Hub** | this folder | The private class network: feed, messaging, clubs, homework, games and the built-in Coding Hub section |
+| **Coding Hub** | [`coding-hub/`](coding-hub/README.md) | The learning platform on its own: lessons, challenges, the question bank, progress, badges and private messaging, with its own database and its own installer |
+
+They are separate programs. Installing one does not affect the other, and they
+can sit side by side on the same computer. Installers for both are built by the
+same workflow: **Actions → Build installers → Run workflow**, then choose which
+app.
+
+The rest of this file is about the Grade 8 Hub. For the standalone Coding Hub,
+see [coding-hub/README.md](coding-hub/README.md).
+
+---
+
+## The Coding Hub section
+
+The Coding Hub is the learning half of this app. It is built around four
 levels: **subject → topic → lesson → challenge**, with a separate question bank
 attached to every topic.
 
