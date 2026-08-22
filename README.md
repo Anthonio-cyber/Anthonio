@@ -238,6 +238,16 @@ operating system turns Bluetooth into a proper network:
 Once joined, the hub works over it unchanged, because it is just a network to
 the app. Expect a few devices at most and slower pictures - text chat is fine.
 
+**Does it need administrator?** Pairing and joining a Bluetooth PAN does
+**not** - any normal user can do it. The only step that asks for permission is
+the firewall, and only on the computer *hosting* the hub. Double-click
+`allow-classmates.bat`, click **Yes**, and it is done for good. On a personal
+laptop that is one click with no password. On a locked-down school laptop it
+may be refused - in that case host on a personal laptop instead.
+
+Classmates who only open the address in their browser never need any
+permission at all.
+
 ### 4. A phone hotspot with mobile data OFF
 
 Worth trying even with no data plan. Most Android phones will still switch the
