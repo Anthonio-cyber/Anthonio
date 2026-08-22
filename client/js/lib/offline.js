@@ -119,7 +119,7 @@ function render() {
   bar.innerHTML = live
     ? `${icon('info', 15)}<span>Showing the last saved copy while the class server catches up.</span>`
     : `${icon('warning', 15)}<span>You are offline. Games still work, and you are seeing the last copy saved on this device.
-       ${pending ? `${pending} score${pending === 1 ? '' : 's'} will be sent when you are back.` : ''}</span>`;
+       ${pending ? `${pending} thing${pending === 1 ? '' : 's'} you wrote will be sent when you are back.` : ''}</span>`;
 }
 
 // ---------------------------------------------------------------------------
@@ -135,39 +135,115 @@ function saveQueue(items) {
 
 /** Remembers a game score played with no connection. */
 export function queueScore(gameKey, score, result) {
+  return addToQueue({ kind: 'score', gameKey, score, result });
+}
+
+/** Remembers a post written with no connection. */
+export function queuePost({ type = 'text', content = '', subject = '', clubId = null }) {
+  return addToQueue({ kind: 'post', type, content, subject, clubId });
+}
+
+/** Remembers a comment written with no connection. */
+export function queueComment(postId, content) {
+  return addToQueue({ kind: 'comment', postId, content });
+}
+
+/** Remembers a message typed with no connection. */
+export function queueMessage(conversationId, body) {
+  return addToQueue({ kind: 'message', conversationId, body });
+}
+
+/** Remembers a homework tick made with no connection. */
+export function queueHomeworkStatus(homeworkId, status) {
+  return addToQueue({ kind: 'homework', homeworkId, status });
+}
+
+function addToQueue(entry) {
   const items = queue();
-  items.push({ kind: 'score', gameKey, score, result, at: Date.now() });
+  items.push({ ...entry, at: Date.now(), id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}` });
   saveQueue(items);
   render();
+  emit('queue:changed', { pending: items.length });
   return items.length;
 }
 
 export const pendingCount = () => queue().length;
 
-/** Sends everything that was waiting, oldest first. */
+/** Everything still waiting, so a screen can show it greyed out. */
+export const pendingItems = () => queue();
+
+/** Removes one waiting item (used when somebody cancels it). */
+export function dropQueued(id) {
+  saveQueue(queue().filter((item) => item.id !== id));
+  render();
+  emit('queue:changed', { pending: pendingCount() });
+}
+
+let flushing = false;
+
+/**
+ * Sends everything that was waiting, oldest first.
+ * Anything the server rejects outright is dropped rather than retried
+ * forever; anything that failed because the connection is still bad is kept.
+ */
 export async function flushQueue() {
+  if (flushing) return 0;
   const items = queue();
   if (!items.length) return 0;
 
+  flushing = true;
   const { api } = await import('./api.js');
   const left = [];
+  const failed = [];
   let sent = 0;
 
-  for (const item of items) {
-    if (item.kind !== 'score') continue;
-    try {
-      await api.games.submitScore(item.gameKey, item.score, item.result);
-      sent += 1;
-    } catch (err) {
-      // Keep it for next time unless the server refused it outright.
-      if (!err.status || err.status >= 500 || err.status === 0) left.push(item);
+  try {
+    for (const item of items) {
+      try {
+        await sendOne(api, item);
+        sent += 1;
+      } catch (err) {
+        // A connection problem means try again later; a refusal means give up.
+        const connectionProblem = !err.status || err.status === 0 || err.status >= 500;
+        if (connectionProblem) left.push(item);
+        else failed.push({ item, reason: err.message });
+      }
     }
+  } finally {
+    flushing = false;
   }
 
   saveQueue(left);
   render();
   if (sent) emit('queue:flushed', { sent });
+  if (failed.length) emit('queue:rejected', { failed });
   return sent;
+}
+
+async function sendOne(api, item) {
+  if (item.kind === 'score') {
+    return api.games.submitScore(item.gameKey, item.score, item.result);
+  }
+  if (item.kind === 'post') {
+    const data = new FormData();
+    data.append('type', item.type);
+    data.append('content', item.content);
+    if (item.subject) data.append('subject', item.subject);
+    if (item.clubId) data.append('clubId', item.clubId);
+    return api.posts.create(data);
+  }
+  if (item.kind === 'comment') {
+    return api.posts.comment(item.postId, item.content);
+  }
+  if (item.kind === 'message') {
+    const data = new FormData();
+    data.append('body', item.body);
+    return api.messages.send(item.conversationId, data);
+  }
+  if (item.kind === 'homework') {
+    return api.homework.setStatus(item.homeworkId, item.status, '');
+  }
+  throw Object.assign(new Error('Unknown item'), { status: 400 });
 }
 
 // ---------------------------------------------------------------------------
