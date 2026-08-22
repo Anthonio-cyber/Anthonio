@@ -1,4 +1,5 @@
 import http from 'node:http';
+import os from 'node:os';
 import path from 'node:path';
 import fs from 'node:fs';
 import express from 'express';
@@ -148,12 +149,40 @@ app.use((err, _req, res, _next) => {
 const server = http.createServer(app);
 attachRealtime(server);
 
+/** The addresses other people on the same Wi-Fi or hotspot can use. */
+export function networkAddresses(port = config.port) {
+  const found = [];
+  for (const addresses of Object.values(os.networkInterfaces())) {
+    for (const address of addresses || []) {
+      if (address.family === 'IPv4' && !address.internal) {
+        found.push(`http://${address.address}:${port}`);
+      }
+    }
+  }
+  return found;
+}
+
 server.listen(config.port, () => {
   const line = '='.repeat(58);
+  const shared = networkAddresses();
+
   console.log(`\n${line}`);
   console.log('  GRADE 8 HUB is running');
   console.log(line);
-  console.log(`  Open in your browser:  http://localhost:${config.port}`);
+  console.log(`  On this computer:      http://localhost:${config.port}`);
+
+  if (shared.length) {
+    console.log('');
+    console.log('  Classmates on the same Wi-Fi or hotspot open:');
+    for (const address of shared) console.log(`      ${address}`);
+    console.log('');
+    console.log('  No internet is needed - only the same network.');
+    console.log('  Keep this window open while they are using the hub.');
+  } else {
+    console.log('  (No network connection found, so only this computer can use it.)');
+  }
+
+  console.log('');
   console.log(`  Database file:         ${path.relative(config.root, config.databaseFile)}`);
   console.log(`  Mode:                  ${config.env}`);
   console.log(`${line}\n  Press Ctrl + C to stop the server.\n`);
