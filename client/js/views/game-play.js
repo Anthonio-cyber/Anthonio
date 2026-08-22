@@ -21,7 +21,8 @@ const LOADERS = {
   reaction: () => import('../games/reaction.js'),
   number_guess: () => import('../games/number-guess.js'),
   quiz_battle: () => import('../games/quiz.js'),
-  typing: () => import('../games/typing.js')
+  typing: () => import('../games/typing.js'),
+  market_world: () => import('../games/market-world/index.js')
 };
 
 export default async function gamePlay({ mount, params, query }) {

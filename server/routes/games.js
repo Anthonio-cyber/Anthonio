@@ -27,7 +27,8 @@ const SCORE_LIMITS = {
   quiz_battle:  { min: 0, max: 20 },
   tic_tac_toe:  { min: 0, max: 1 },
   connect_four: { min: 0, max: 1 },
-  rps:          { min: 0, max: 5 }
+  rps:          { min: 0, max: 5 },
+  market_world: { min: 0, max: 2_000_000_000 }   // lifetime earnings in the shop simulation
 };
 
 function clampScore(gameKey, raw) {
