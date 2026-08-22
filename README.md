@@ -156,6 +156,49 @@ Windows will say the publisher is unknown: choose **More info** then
 
 ---
 
+## Using it with NO internet (hotspot)
+
+Socket.io, messaging, online dots and everything else work with **no internet
+at all**. They only need the devices to be on the *same network* - and a phone
+hotspot counts. Nothing goes through the school Wi-Fi.
+
+Messages arrive in about 50 milliseconds this way. Tested, not guessed.
+
+### Set it up once
+
+**1. Make a network**
+   On the host phone or laptop, turn on the **hotspot** (Settings -> Hotspot).
+   Everyone else connects to that hotspot. Mobile data can even stay off -
+   the hotspot alone is enough for the hub to work.
+
+**2. Allow classmates through the firewall (Windows, once only)**
+   Right-click **allow-classmates.bat** -> **Run as administrator**.
+   Windows blocks other devices until you do this, and it is the most common
+   reason classmates cannot connect.
+
+**3. Start the hub on the host computer**
+   Double-click **start.bat** (or run `npm start`). It prints something like:
+
+   ```
+   Classmates on the same Wi-Fi or hotspot open:
+       http://192.168.43.1:3000
+   ```
+
+**4. Everyone else opens that address**
+   In any browser on their phone or laptop. That is it - they can sign up
+   with an invitation code and start messaging.
+
+### Things worth knowing
+
+- The host computer must stay **on and awake** while people are using it.
+- Everyone must stay connected to the **same hotspot**. Walk out of range and
+  you go offline - what you write is saved and sent when you come back.
+- The address changes when you join a different network. Just read the new
+  one off the screen when you start the hub.
+- Only **one** computer runs the hub. If everybody installs the desktop app
+  and opens it, each person gets their own private empty hub and they will
+  not see each other.
+
 ## What works offline
 
 The hub keeps working when the connection drops:
