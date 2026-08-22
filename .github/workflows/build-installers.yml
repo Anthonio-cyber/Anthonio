@@ -1,86 +1,178 @@
 # ==========================================================
-# Builds the Grade 8 Hub installers.
+# Builds the installers for both applications in this repository.
 #
-# Windows installers can only be built on Windows, and macOS
-# installers only on macOS, so GitHub builds each one on the
-# right kind of machine and attaches them all to a release.
+#   Grade 8 Hub  - the class network, at the top level
+#   Coding Hub   - the learning platform, in coding-hub/
 #
-# To get the installers:
-#   1. Go to the Actions tab and run "Build installers", OR
-#      push a version tag:  git tag v1.0.0 && git push --tags
-#   2. Download them from the run's Artifacts, or from Releases
-#      if you used a tag.
+# They are separate programs with separate databases, so each one
+# can be built and released on its own.
+#
+# To get installers:
+#   1. Actions tab -> "Build installers" -> Run workflow.
+#      Choose which app, and fill in a version to publish a release
+#      as well (for example v1.2.0 or coding-hub-v1.0.0).
+#   2. Or push a tag: v* builds the Grade 8 Hub,
+#      coding-hub-v* builds the Coding Hub.
+#   3. Download from the run's Artifacts, or from Releases.
 # ==========================================================
 name: Build installers
 
 on:
-  workflow_dispatch:        # lets you press a button in the Actions tab
+  workflow_dispatch:
     inputs:
+      app:
+        description: 'Which application to build'
+        required: true
+        default: 'coding-hub'
+        type: choice
+        options:
+          - coding-hub
+          - grade8-hub
+          - both
       release_tag:
-        description: 'Publish a release with these installers (e.g. v1.0.0). Leave blank to only build them.'
+        description: 'Publish a release with these installers (e.g. coding-hub-v1.0.0). Leave blank to only build them.'
         required: false
         default: ''
   push:
     tags:
       - 'v*'
+      - 'coding-hub-v*'
 
 permissions:
   contents: write
 
 jobs:
-  build:
-    name: ${{ matrix.label }}
+  # ---------------------------------------------------------------
+  # Works out which app this run is for, so both the button and a
+  # pushed tag end up choosing the same way.
+  # ---------------------------------------------------------------
+  decide:
+    runs-on: ubuntu-latest
+    outputs:
+      grade8: ${{ steps.pick.outputs.grade8 }}
+      coding: ${{ steps.pick.outputs.coding }}
+    steps:
+      - id: pick
+        shell: bash
+        run: |
+          app="${{ inputs.app }}"
+          ref="${{ github.ref_name }}"
+          grade8=false
+          coding=false
+          if [ "${{ github.event_name }}" = "push" ]; then
+            case "$ref" in
+              coding-hub-v*) coding=true ;;
+              v*)            grade8=true ;;
+            esac
+          else
+            case "$app" in
+              coding-hub) coding=true ;;
+              grade8-hub) grade8=true ;;
+              both)       coding=true; grade8=true ;;
+            esac
+          fi
+          echo "grade8=$grade8" >> "$GITHUB_OUTPUT"
+          echo "coding=$coding" >> "$GITHUB_OUTPUT"
+          echo "Grade 8 Hub: $grade8, Coding Hub: $coding"
+
+  grade8:
+    name: Grade 8 Hub - ${{ matrix.label }}
+    needs: decide
+    if: needs.decide.outputs.grade8 == 'true'
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
         include:
           - os: windows-latest
-            label: Windows installer (.exe)
+            label: Windows (.exe)
             command: npm run app:build:win
-            artifact: windows-installer
+            artifact: grade8-windows
             files: |
               dist-app/*.exe
               dist-app/*.exe.blockmap
           - os: macos-latest
-            label: macOS installer (.dmg)
+            label: macOS (.dmg)
             command: npm run app:build:mac
-            artifact: macos-installer
-            files: |
-              dist-app/*.dmg
+            artifact: grade8-macos
+            files: dist-app/*.dmg
           - os: ubuntu-latest
-            label: Linux installer (.AppImage / .deb)
+            label: Linux (.AppImage / .deb)
             command: npm run app:build:linux
-            artifact: linux-installer
+            artifact: grade8-linux
             files: |
               dist-app/*.AppImage
               dist-app/*.deb
-
     steps:
-      - name: Get the code
-        uses: actions/checkout@v4
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: npm
-
       - name: Install the app's own packages
         run: npm ci
-
       - name: Install the packaging tools
         run: npm run app:setup
-
       - name: Build the installer
         run: ${{ matrix.command }}
         env:
-          # No code-signing certificate, so build unsigned.
           CSC_IDENTITY_AUTO_DISCOVERY: false
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact }}
+          path: ${{ matrix.files }}
+          if-no-files-found: error
+          retention-days: 30
 
-      - name: Upload the installer
-        uses: actions/upload-artifact@v4
+  coding-hub:
+    name: Coding Hub - ${{ matrix.label }}
+    needs: decide
+    if: needs.decide.outputs.coding == 'true'
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        working-directory: coding-hub
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            label: Windows (.exe)
+            command: npm run app:build:win
+            artifact: coding-hub-windows
+            files: |
+              coding-hub/dist-app/*.exe
+              coding-hub/dist-app/*.exe.blockmap
+          - os: macos-latest
+            label: macOS (.dmg)
+            command: npm run app:build:mac
+            artifact: coding-hub-macos
+            files: coding-hub/dist-app/*.dmg
+          - os: ubuntu-latest
+            label: Linux (.AppImage / .deb)
+            command: npm run app:build:linux
+            artifact: coding-hub-linux
+            files: |
+              coding-hub/dist-app/*.AppImage
+              coding-hub/dist-app/*.deb
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install the app's own packages
+        run: npm install --no-audit --no-fund
+      - name: Install the packaging tools
+        run: npm run app:setup
+      - name: Check the version stamps agree
+        run: npm run build
+      - name: Build the installer
+        run: ${{ matrix.command }}
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: false
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.artifact }}
           path: ${{ matrix.files }}
@@ -89,8 +181,11 @@ jobs:
 
   release:
     name: Attach installers to the release
-    needs: build
-    if: startsWith(github.ref, 'refs/tags/v') || inputs.release_tag != ''
+    needs: [grade8, coding-hub]
+    if: |
+      always()
+      && (startsWith(github.ref, 'refs/tags/') || inputs.release_tag != '')
+      && !contains(needs.*.result, 'failure')
     runs-on: ubuntu-latest
     steps:
       - name: Collect every installer
@@ -102,18 +197,20 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ inputs.release_tag || github.ref_name }}
-          name: Grade 8 Hub ${{ inputs.release_tag || github.ref_name }}
+          name: ${{ inputs.release_tag || github.ref_name }}
           files: installers/**/*
           generate_release_notes: true
           body: |
-            ## Grade 8 Hub ${{ inputs.release_tag || github.ref_name }}
-
-            Download the file for your computer, then open it:
+            Download the file for your computer, then open it.
 
             | Computer | File | What to do |
             |----------|------|------------|
-            | Windows  | `Grade8Hub-Setup-*-windows.exe` | Open it and follow the steps. Windows may warn that the publisher is unknown - choose **More info** then **Run anyway**. |
-            | macOS    | `Grade8Hub-*-mac-arm64.dmg` (Apple Silicon) or `-mac-x64.dmg` (Intel) | Open it and drag the app into Applications. First launch: right-click the app and choose **Open**. |
-            | Linux    | `Grade8Hub-*-linux.AppImage` | Right-click it, allow it to run as a program, then open it. |
+            | Windows  | `*-windows.exe` | Open it and follow the steps. Windows may warn that the publisher is unknown - choose **More info** then **Run anyway**. |
+            | macOS    | `*-mac-arm64.dmg` (Apple Silicon) or `*-mac-x64.dmg` (Intel) | Open it and drag the app into Applications. First launch: right-click the app and choose **Open**. |
+            | Linux    | `*-linux.AppImage` or `*-linux.deb` | Right-click the AppImage, allow it to run as a program, then open it. |
 
             Nothing else needs installing - Node.js is built in.
+
+            **Coding Hub** files start with `CodingHub-`, **Grade 8 Hub** files
+            start with `Grade8Hub-`. They are separate programs with separate
+            databases and can be installed side by side.
