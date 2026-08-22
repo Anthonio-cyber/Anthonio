@@ -199,6 +199,61 @@ Messages arrive in about 50 milliseconds this way. Tested, not guessed.
   and opens it, each person gets their own private empty hub and they will
   not see each other.
 
+## No Wi-Fi at all? Other ways to connect
+
+The hub never contacts the internet, and it does not care *what kind* of
+network it runs on. It accepts connections on **every** network the computer
+has - Wi-Fi, Ethernet cable, Bluetooth or USB. Anything that gives the devices
+an IP address will work.
+
+The one rule that cannot be avoided: **the devices must be joined by
+something.** No program can move a message between two devices that have no
+connection at all. So pick whichever of these you can actually use.
+
+### 1. A cheap Wi-Fi router (best for a group)
+
+A router does **not** need internet to work. Plug one in, let everyone connect
+to it, and run the hub on the host laptop. The router just moves messages
+between the devices in the room. A used or travel router costs very little and
+handles a whole class.
+
+### 2. An Ethernet cable (best for two computers)
+
+Plug a normal network cable between two laptops. Modern laptops sort the
+wiring out themselves. Each gets an address automatically, the hub prints it,
+and it works. Rock solid, no radio involved. Many thin laptops need a small
+USB-to-Ethernet adapter.
+
+### 3. Bluetooth (slow, but it does work)
+
+Not the Bluetooth *inside* a web page - browsers genuinely cannot chat that
+way. What works is **Bluetooth PAN / Bluetooth tethering**, where the
+operating system turns Bluetooth into a proper network:
+
+- **Windows**: pair the two computers, then Control Panel ->
+  *Devices and Printers* -> right-click the other computer ->
+  *Connect using* -> *Access point*
+- **Android**: pair, then Settings -> *Bluetooth tethering*
+
+Once joined, the hub works over it unchanged, because it is just a network to
+the app. Expect a few devices at most and slower pictures - text chat is fine.
+
+### 4. A phone hotspot with mobile data OFF
+
+Worth trying even with no data plan. Most Android phones will still switch the
+hotspot on and create a network, because sharing data and making a network are
+two separate things. A laptop hotspot often refuses without a connection to
+share, but a phone frequently does not.
+
+### What will not work
+
+- Two laptops in a room with **no** router, cable, Bluetooth or hotspot
+  between them. There is no path, so there is nothing for messages to travel
+  along.
+- Everybody installing the desktop app and expecting to find each other. Each
+  installation is its own private hub. One computer hosts; everyone else opens
+  its address.
+
 ## What works offline
 
 The hub keeps working when the connection drops:
