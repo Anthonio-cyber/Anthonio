@@ -431,6 +431,54 @@
 [data-move="up"] svg, [data-move-block="up"] svg,
 [data-move="down"] svg, [data-move-block="down"] svg { transform: rotate(90deg); }
 
+/* ---------- pieces used by the standalone Coding Hub screens ---------- */
+.accent-dot {
+  width: 30px; height: 30px; border-radius: 50%;
+  border: 2px solid transparent; cursor: pointer;
+  background: var(--accent);
+}
+.accent-dot.active { border-color: var(--text); }
+.accent-dot[data-accent-swatch="violet"]  { background: #7c5cff; }
+.accent-dot[data-accent-swatch="cyan"]    { background: #22d3ee; }
+.accent-dot[data-accent-swatch="emerald"] { background: #34d399; }
+.accent-dot[data-accent-swatch="amber"]   { background: #fbbf24; }
+.accent-dot[data-accent-swatch="rose"]    { background: #fb7185; }
+
+.rank {
+  flex: 0 0 auto; width: 26px; height: 26px; border-radius: 50%;
+  display: grid; place-items: center;
+  background: var(--surface-3); color: var(--text-faint);
+  font-size: .76rem; font-weight: 750;
+}
+.rank-1 { background: #fbbf2433; color: #d19a00; }
+.rank-2 { background: #cbd5e133; color: #94a3b8; }
+.rank-3 { background: #b4530933; color: #c2703a; }
+.list-item.is-me { background: var(--accent-soft); }
+
+.profile-head { padding: 0; overflow: hidden; }
+.profile-cover { height: 130px; background-size: cover; background-position: center; }
+.profile-main { display: flex; gap: 1rem; align-items: flex-start; padding: 1.2rem; }
+.profile-actions {
+  display: flex; gap: .5rem; flex-wrap: wrap;
+  padding: 0 1.2rem 1.2rem;
+}
+
+.spark-row {
+  display: flex; align-items: flex-end; gap: 2px;
+  height: 90px; margin: .6rem 0 .3rem;
+}
+.spark-bar { flex: 1; height: 100%; display: flex; align-items: flex-end; }
+.spark-bar span {
+  width: 100%; min-height: 2px; border-radius: 2px 2px 0 0;
+  background: linear-gradient(180deg, var(--accent), var(--accent-2));
+}
+
+.bubble-code { padding: 0; background: none; }
+.bubble-code .code-block { margin: 0; max-width: min(70vw, 520px); }
+#send-as-code.active { background: var(--accent-soft); color: var(--accent); }
+
+.highlight { outline: 2px solid var(--accent); outline-offset: 3px; }
+
 /* The "mark this lesson complete" button carries a long label, and a button
    will not shrink below its text. On a narrow screen it pushed the page
    sideways, so there the buttons go full width and the label wraps. */

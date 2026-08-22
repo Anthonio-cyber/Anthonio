@@ -1,0 +1,187 @@
+/* ==========================================================
+   Coding Hub - design tokens, reset and typography
+   ========================================================== */
+
+:root {
+  /* Light theme is the default set; the dark block below overrides it. */
+  --bg:            #f4f5fb;
+  --bg-elevated:   #ffffff;
+  --surface:       #ffffff;
+  --surface-2:     #f7f8fd;
+  --surface-3:     #eef0f8;
+  --border:        #e2e5f0;
+  --border-strong: #cdd2e4;
+
+  --text:          #161a2b;
+  --text-muted:    #5c6486;
+  --text-faint:    #8b92ad;
+
+  --accent:        #6d4aff;
+  --accent-soft:   #efeaff;
+  --accent-text:   #ffffff;
+  --accent-2:      #0aa2c0;
+
+  --success:       #10893e;
+  --success-soft:  #e3f6ea;
+  --warning:       #b26a00;
+  --warning-soft:  #fdf0dc;
+  --danger:        #cc2b3d;
+  --danger-soft:   #fdeaec;
+  --info:          #1f6feb;
+  --info-soft:     #e7f0ff;
+
+  --radius-sm: 8px;
+  --radius:    14px;
+  --radius-lg: 20px;
+  --radius-xl: 28px;
+
+  --shadow-sm: 0 1px 2px rgba(20, 24, 45, .06), 0 1px 3px rgba(20, 24, 45, .04);
+  --shadow:    0 4px 16px rgba(20, 24, 45, .08);
+  --shadow-lg: 0 18px 48px rgba(20, 24, 45, .14);
+
+  --sidebar-w: 252px;
+  --rail-w:    320px;
+  --header-h:  64px;
+  --bottom-nav-h: 62px;
+
+  --speed: 180ms;
+  --ease: cubic-bezier(.4, 0, .2, 1);
+
+  --font: 'Segoe UI', system-ui, -apple-system, 'Helvetica Neue', Arial, sans-serif;
+  --font-mono: 'Cascadia Mono', Consolas, 'SF Mono', Menlo, monospace;
+}
+
+[data-theme="dark"] {
+  --bg:            #080a13;
+  --bg-elevated:   #0e1120;
+  --surface:       #121628;
+  --surface-2:     #171c32;
+  --surface-3:     #1e2440;
+  --border:        #222842;
+  --border-strong: #333c60;
+
+  --text:          #eef1fb;
+  --text-muted:    #a2abcc;
+  --text-faint:    #6f78a0;
+
+  --accent:        #7c5cff;
+  --accent-soft:   #211a4d;
+  --accent-text:   #ffffff;
+  --accent-2:      #22d3ee;
+
+  --success:       #34d399;
+  --success-soft:  #10291f;
+  --warning:       #fbbf24;
+  --warning-soft:  #2b2210;
+  --danger:        #fb7185;
+  --danger-soft:   #2d141c;
+  --info:          #60a5fa;
+  --info-soft:     #111f38;
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, .4);
+  --shadow:    0 6px 22px rgba(0, 0, 0, .45);
+  --shadow-lg: 0 24px 60px rgba(0, 0, 0, .6);
+}
+
+/* Accent choices from Settings */
+[data-accent="cyan"]    { --accent: #22d3ee; --accent-2: #7c5cff; --accent-text: #04121a; }
+[data-accent="emerald"] { --accent: #34d399; --accent-2: #22d3ee; --accent-text: #04160f; }
+[data-accent="amber"]   { --accent: #fbbf24; --accent-2: #fb7185; --accent-text: #1a1204; }
+[data-accent="rose"]    { --accent: #fb7185; --accent-2: #7c5cff; --accent-text: #1c060c; }
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  min-height: 100%;
+}
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 15px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+h1, h2, h3, h4, h5 { margin: 0 0 .5rem; line-height: 1.25; font-weight: 650; }
+h1 { font-size: 1.7rem; letter-spacing: -.02em; }
+h2 { font-size: 1.3rem; letter-spacing: -.01em; }
+h3 { font-size: 1.05rem; }
+h4 { font-size: .95rem; }
+p  { margin: 0 0 .75rem; }
+a  { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+img, svg, video { max-width: 100%; display: block; }
+
+button, input, select, textarea { font: inherit; color: inherit; }
+
+hr { border: 0; border-top: 1px solid var(--border); margin: 1rem 0; }
+
+code, pre { font-family: var(--font-mono); font-size: .88em; }
+
+::selection { background: var(--accent); color: var(--accent-text); }
+
+/* Scrollbars */
+* { scrollbar-width: thin; scrollbar-color: var(--border-strong) transparent; }
+*::-webkit-scrollbar { width: 10px; height: 10px; }
+*::-webkit-scrollbar-track { background: transparent; }
+*::-webkit-scrollbar-thumb {
+  background: var(--border-strong);
+  border-radius: 99px;
+  border: 3px solid transparent;
+  background-clip: content-box;
+}
+*::-webkit-scrollbar-thumb:hover { background: var(--text-faint); background-clip: content-box; }
+
+/* Focus: always visible for keyboard users */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+.visually-hidden {
+  position: absolute; width: 1px; height: 1px;
+  padding: 0; margin: -1px; overflow: hidden;
+  clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
+
+/* ---------- Boot screen ---------- */
+.app-loading { display: grid; place-items: center; min-height: 100vh; }
+.boot-screen { text-align: center; color: var(--text-muted); }
+.boot-logo {
+  width: 76px; height: 76px; margin: 0 auto 1rem;
+  border-radius: 22px;
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  color: #fff; display: grid; place-items: center;
+  font-size: 1.7rem; font-weight: 800; letter-spacing: -.03em;
+  animation: pulse 1.6s var(--ease) infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50%      { transform: scale(.93); opacity: .75; }
+}
+
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: none; }
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

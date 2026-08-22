@@ -1,0 +1,247 @@
+/* ==========================================================
+   Coding Hub - the neon layer.
+
+   Sits on top of the base tokens rather than replacing them, so
+   every existing screen keeps its structure and only gains the
+   glow. Light theme stays clean and readable; the neon is mostly
+   a dark-theme effect, which is where it belongs.
+
+   Anybody who has asked their system for less motion gets the
+   same look with the movement switched off (bottom of the file).
+   ========================================================== */
+
+:root {
+  --neon-1: #7c5cff;   /* violet  */
+  --neon-2: #22d3ee;   /* cyan    */
+  --neon-3: #ff2d9b;   /* magenta */
+  --neon-4: #ffd166;   /* gold    */
+
+  --neon-glow-sm: 0 0 6px rgba(124, 92, 255, .45);
+  --neon-glow:    0 0 18px rgba(124, 92, 255, .38), 0 0 44px rgba(34, 211, 238, .18);
+  --neon-glow-lg: 0 0 28px rgba(124, 92, 255, .55), 0 0 80px rgba(255, 45, 155, .22);
+  --neon-line: linear-gradient(90deg, var(--neon-1), var(--neon-2), var(--neon-3));
+}
+
+[data-theme="dark"] {
+  --bg: #05060f;
+  --bg-elevated: #0a0c1a;
+  --surface: #0d1020;
+  --surface-2: #121629;
+  --surface-3: #1a1f38;
+  --border: #232a4a;
+  --border-strong: #3a4478;
+}
+
+/* ---------- the moving background ---------- */
+[data-theme="dark"] body::before,
+[data-theme="dark"] body::after {
+  content: '';
+  position: fixed;
+  z-index: -2;
+  width: 60vmax; height: 60vmax;
+  border-radius: 50%;
+  filter: blur(90px);
+  opacity: .22;
+  pointer-events: none;
+  will-change: transform;
+}
+[data-theme="dark"] body::before {
+  top: -20vmax; left: -14vmax;
+  background: radial-gradient(circle at 30% 30%, var(--neon-1), transparent 62%);
+  animation: neon-drift-a 26s ease-in-out infinite alternate;
+}
+[data-theme="dark"] body::after {
+  bottom: -24vmax; right: -16vmax;
+  background: radial-gradient(circle at 60% 60%, var(--neon-2), transparent 62%);
+  animation: neon-drift-b 32s ease-in-out infinite alternate;
+}
+
+@keyframes neon-drift-a {
+  from { transform: translate3d(0, 0, 0) scale(1); }
+  to   { transform: translate3d(6vmax, 8vmax, 0) scale(1.14); }
+}
+@keyframes neon-drift-b {
+  from { transform: translate3d(0, 0, 0) scale(1.1); }
+  to   { transform: translate3d(-7vmax, -6vmax, 0) scale(1); }
+}
+
+/* A faint grid, so the dark areas read as a surface rather than a void. */
+[data-theme="dark"] body {
+  background-image:
+    linear-gradient(rgba(124, 92, 255, .045) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(124, 92, 255, .045) 1px, transparent 1px);
+  background-size: 46px 46px;
+  background-attachment: fixed;
+}
+
+/* ---------- headings ---------- */
+[data-theme="dark"] h1 {
+  background: linear-gradient(92deg, #ffffff 10%, var(--neon-2) 55%, var(--neon-1) 90%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+[data-theme="dark"] .brand-mark {
+  background: var(--neon-line);
+  box-shadow: var(--neon-glow);
+  color: #05060f;
+  font-weight: 800;
+}
+[data-theme="dark"] .brand-text { color: var(--text); }
+
+/* ---------- panels ---------- */
+[data-theme="dark"] .card,
+[data-theme="dark"] .stat,
+[data-theme="dark"] .subject-card,
+[data-theme="dark"] .question-card,
+[data-theme="dark"] .topic-row,
+[data-theme="dark"] .admin-table-wrap {
+  background: linear-gradient(160deg, rgba(19, 23, 44, .92), rgba(10, 12, 26, .92));
+  border-color: rgba(124, 92, 255, .16);
+  backdrop-filter: blur(6px);
+}
+
+/* One gradient hairline along the top of every card. */
+[data-theme="dark"] .card,
+[data-theme="dark"] .subject-card,
+[data-theme="dark"] .question-card { position: relative; overflow: hidden; }
+[data-theme="dark"] .card::before,
+[data-theme="dark"] .subject-card::before,
+[data-theme="dark"] .question-card::before {
+  content: '';
+  position: absolute; inset: 0 0 auto 0;
+  height: 1px;
+  background: var(--neon-line);
+  opacity: .55;
+}
+
+[data-theme="dark"] .card-hover:hover,
+[data-theme="dark"] .subject-card:hover,
+[data-theme="dark"] .topic-row:hover {
+  border-color: rgba(124, 92, 255, .5);
+  box-shadow: var(--neon-glow);
+  transform: translateY(-3px);
+}
+
+.card-hover, .subject-card, .topic-row, .stat, .btn, .option, .badge-tile {
+  transition: transform var(--speed) var(--ease),
+              box-shadow var(--speed) var(--ease),
+              border-color var(--speed) var(--ease);
+}
+
+/* ---------- buttons ---------- */
+[data-theme="dark"] .btn-primary {
+  background: linear-gradient(120deg, var(--neon-1), var(--neon-3) 55%, var(--neon-2));
+  background-size: 200% 100%;
+  border: 0;
+  color: #ffffff;
+  box-shadow: var(--neon-glow-sm);
+}
+[data-theme="dark"] .btn-primary:hover {
+  background-position: 100% 0;
+  box-shadow: var(--neon-glow);
+  transform: translateY(-1px);
+}
+[data-theme="dark"] .btn:not(.btn-primary):not(.btn-danger):hover {
+  border-color: var(--neon-1);
+  box-shadow: var(--neon-glow-sm);
+}
+
+/* ---------- navigation ---------- */
+[data-theme="dark"] .nav-item.active {
+  background: linear-gradient(90deg, rgba(124, 92, 255, .22), transparent);
+  color: #fff;
+  box-shadow: inset 2px 0 0 var(--neon-2);
+}
+[data-theme="dark"] .nav-item:hover { color: #fff; }
+[data-theme="dark"] .bottom-nav a.active { color: var(--neon-2); text-shadow: 0 0 10px rgba(34, 211, 238, .6); }
+
+/* ---------- level bar, progress, badges ---------- */
+[data-theme="dark"] .level-bar span,
+[data-theme="dark"] .learn-progress-fill {
+  background: var(--neon-line);
+  box-shadow: 0 0 12px rgba(124, 92, 255, .6);
+}
+[data-theme="dark"] .badge-accent {
+  background: rgba(124, 92, 255, .18);
+  color: #c9bcff;
+  box-shadow: inset 0 0 0 1px rgba(124, 92, 255, .4);
+}
+[data-theme="dark"] .badge-tile.earned {
+  border-color: rgba(124, 92, 255, .45);
+  box-shadow: var(--neon-glow-sm);
+}
+[data-theme="dark"] .badge-tile.earned .badge-mark {
+  background: var(--neon-line);
+  color: #05060f;
+  box-shadow: 0 0 18px rgba(124, 92, 255, .5);
+}
+
+/* ---------- the hero panel ---------- */
+[data-theme="dark"] .hero-card {
+  background: linear-gradient(140deg, rgba(124, 92, 255, .20), rgba(34, 211, 238, .10) 45%, rgba(10, 12, 26, .95));
+  border: 1px solid rgba(124, 92, 255, .28);
+  box-shadow: var(--neon-glow);
+}
+[data-theme="dark"] .hero-glow {
+  background: radial-gradient(circle at 70% 20%, rgba(255, 45, 155, .35), transparent 60%);
+}
+
+/* ---------- practice answers ---------- */
+[data-theme="dark"] .option:hover:not(:disabled) {
+  border-color: var(--neon-1);
+  box-shadow: var(--neon-glow-sm);
+  transform: translateX(2px);
+}
+[data-theme="dark"] .option.correct {
+  border-color: #34d399;
+  box-shadow: 0 0 18px rgba(52, 211, 153, .35);
+}
+[data-theme="dark"] .option.wrong {
+  border-color: #fb7185;
+  box-shadow: 0 0 18px rgba(251, 113, 133, .3);
+}
+
+/* ---------- code ---------- */
+[data-theme="dark"] .code-block {
+  border-color: rgba(34, 211, 238, .22);
+  box-shadow: inset 0 0 30px rgba(34, 211, 238, .05);
+}
+[data-theme="dark"] .code-block-bar { color: var(--neon-2); }
+
+/* ---------- subject tiles get a little depth ---------- */
+.subject-card { perspective: 800px; }
+[data-theme="dark"] .subject-mark {
+  box-shadow: 0 6px 18px rgba(0, 0, 0, .45), 0 0 0 1px rgba(255, 255, 255, .06) inset;
+}
+
+/* ---------- light theme: a calmer version of the same idea ---------- */
+[data-theme="light"] .btn-primary {
+  background: linear-gradient(120deg, #6d4aff, #b429c9 60%, #0aa2c0);
+  border: 0;
+  color: #fff;
+}
+[data-theme="light"] .card-hover:hover { box-shadow: 0 10px 30px rgba(109, 74, 255, .16); transform: translateY(-2px); }
+[data-theme="light"] .level-bar span,
+[data-theme="light"] .learn-progress-fill { background: linear-gradient(90deg, #6d4aff, #0aa2c0); }
+
+/* ---------- calm mode ---------- */
+@media (prefers-reduced-motion: reduce) {
+  [data-theme="dark"] body::before,
+  [data-theme="dark"] body::after { animation: none; }
+  .card-hover, .subject-card, .topic-row, .stat, .btn, .option, .badge-tile { transition: none; }
+  [data-theme="dark"] .card-hover:hover,
+  [data-theme="dark"] .subject-card:hover,
+  [data-theme="dark"] .topic-row:hover { transform: none; }
+}
+
+/* Stat labels used to be cut off with an ellipsis ("Lessons comp..."), which
+   made the tiles unreadable. They wrap onto a second line instead. */
+.stat-label {
+  white-space: normal;
+  overflow: visible;
+  text-overflow: clip;
+  line-height: 1.25;
+}
+.stat { align-items: flex-start; }
+.stat-body { display: flex; flex-direction: column; gap: .1rem; }
