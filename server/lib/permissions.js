@@ -36,6 +36,26 @@ export const PERMISSIONS = {
 
   'games.manage': 'Enable/disable games, reset leaderboards, run tournaments',
 
+  'subjects.view': 'See unpublished (draft) coding subjects',
+  'subjects.create': 'Create a coding subject',
+  'subjects.edit': 'Edit, reorder, hide or publish coding subjects',
+  'subjects.delete': 'Delete coding subjects',
+
+  'topics.create': 'Create topics inside a subject',
+  'topics.edit': 'Edit, reorder, hide or publish topics',
+  'topics.delete': 'Delete topics',
+
+  'lessons.create': 'Write new lessons',
+  'lessons.edit': 'Edit lessons, restore versions, publish and unpublish',
+  'lessons.delete': 'Delete lessons',
+
+  'questions.create': 'Add questions to the question bank',
+  'questions.edit': 'Edit questions and change them in bulk',
+  'questions.delete': 'Delete questions',
+  'questions.import': 'Import and export question files',
+
+  'learning.analytics': 'See learning analytics and everyone\'s progress',
+
   'reports.view': 'See the moderation queue',
   'reports.resolve': 'Resolve or dismiss reports',
   'messages.moderate': 'Open a reported private conversation (always logged)',
@@ -51,10 +71,20 @@ const STUDENT = [
   'clubs.create'
 ];
 
+// Everything needed to build and look after the Coding Hub curriculum.
+const CURRICULUM = [
+  'subjects.view', 'subjects.create', 'subjects.edit',
+  'topics.create', 'topics.edit',
+  'lessons.create', 'lessons.edit',
+  'questions.create', 'questions.edit', 'questions.import',
+  'learning.analytics'
+];
+
 const CLUB_ADMIN = [...STUDENT];
 
 const MODERATOR = [
   ...STUDENT,
+  'subjects.view',
   'posts.moderate',
   'reports.view', 'reports.resolve',
   'users.restrict',
@@ -63,6 +93,8 @@ const MODERATOR = [
 
 const TEACHER = [
   ...STUDENT,
+  ...CURRICULUM,
+  'lessons.delete', 'questions.delete', 'topics.delete',
   'posts.moderate',
   'homework.create', 'homework.edit', 'homework.delete', 'homework.stats',
   'announcements.create', 'announcements.edit', 'announcements.delete',
@@ -76,6 +108,8 @@ const ADMIN = [
     'users.edit', 'users.suspend', 'users.roles', 'users.xp', 'users.invite',
     'clubs.approve', 'clubs.manage', 'clubs.delete',
     'games.manage',
+    ...CURRICULUM,
+    'subjects.delete', 'topics.delete', 'lessons.delete', 'questions.delete',
     'messages.moderate',
     'logs.view'
   ])
@@ -87,7 +121,7 @@ export const ROLES = [
   { key: 'student',     name: 'Student',      rank: 10, description: 'A Grade 8 class member.',                    permissions: STUDENT },
   { key: 'club_admin',  name: 'Club Admin',   rank: 20, description: 'Runs one or more clubs.',                    permissions: CLUB_ADMIN },
   { key: 'moderator',   name: 'Moderator',    rank: 30, description: 'Keeps the feed and reports under control.',  permissions: MODERATOR },
-  { key: 'teacher',     name: 'Teacher',      rank: 40, description: 'Posts homework and announcements.',          permissions: TEACHER },
+  { key: 'teacher',     name: 'Teacher',      rank: 40, description: 'Writes lessons and questions, sets homework.', permissions: TEACHER },
   { key: 'admin',       name: 'Admin',        rank: 50, description: 'Runs the whole community.',                  permissions: ADMIN },
   { key: 'super_admin', name: 'Super Admin',  rank: 60, description: 'Full control, including settings.',          permissions: SUPER_ADMIN }
 ];
@@ -108,7 +142,17 @@ export const DEFAULT_SETTINGS = {
   xp_challenge: '10',
   xp_tournament: '100',
   xp_post: '2',
-  xp_homework_complete: '5'
+  xp_homework_complete: '5',
+
+  // ---- Coding Hub ----
+  coding_hub_enabled: 'true',
+  coding_hub_name: 'Coding Hub',
+  coding_hub_tagline: 'Learn to code, one topic at a time.',
+  practice_question_count: '10',
+  show_lesson_answers: 'true',
+  xp_lesson_complete: '25',
+  xp_correct_answer: '5',
+  xp_coding_challenge: '20'
 };
 
 export const GAME_CATALOGUE = [
@@ -131,5 +175,19 @@ export const ACHIEVEMENTS = [
   { key: 'homework_hero',  name: 'Homework Hero',    description: 'Completed 10 homework assignments.',      icon: 'book' },
   { key: 'streak_7',       name: 'Week Streak',      description: 'Visited the hub 7 days in a row.',        icon: 'fire' },
   { key: 'level_5',        name: 'Level 5',          description: 'Reached level 5.',                        icon: 'level' },
-  { key: 'social',         name: 'Social Butterfly', description: 'Connected with 5 classmates.',            icon: 'users' }
+  { key: 'social',         name: 'Social Butterfly', description: 'Connected with 5 classmates.',            icon: 'users' },
+
+  // ---- Coding Hub ----
+  { key: 'first_lesson',   name: 'First Lesson',     description: 'Finished your first coding lesson.',      icon: 'book' },
+  { key: 'questions_100',  name: '100 Questions',    description: 'Answered 100 practice questions.',        icon: 'target' },
+  { key: 'questions_500',  name: '500 Questions',    description: 'Answered 500 practice questions.',        icon: 'target' },
+  { key: 'questions_1000', name: '1,000 Questions',  description: 'Answered 1,000 practice questions.',      icon: 'target' },
+  { key: 'first_challenge', name: 'First Build',     description: 'Completed your first coding challenge.',  icon: 'zap' },
+  { key: 'sharp_shooter',  name: 'Sharp Shooter',    description: 'Answered 25 questions in a row correctly.', icon: 'star' },
+  { key: 'master_html',    name: 'HTML Master',      description: 'Completed every published HTML lesson.',  icon: 'award' },
+  { key: 'master_css',     name: 'CSS Master',       description: 'Completed every published CSS lesson.',   icon: 'award' },
+  { key: 'master_javascript', name: 'JavaScript Master', description: 'Completed every published JavaScript lesson.', icon: 'award' },
+  { key: 'master_python',  name: 'Python Master',    description: 'Completed every published Python lesson.', icon: 'award' },
+  { key: 'master_git',     name: 'Git Master',       description: 'Completed every published Git & GitHub lesson.', icon: 'award' },
+  { key: 'master_react',   name: 'React Master',     description: 'Completed every published React lesson.', icon: 'award' }
 ];

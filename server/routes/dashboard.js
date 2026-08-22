@@ -5,6 +5,7 @@ import { serializePost, serializeAnnouncement, serializeHomework, serializeClub,
 import { wrap } from '../lib/util.js';
 import { homeworkSummary } from './homework.js';
 import { gameStats } from '../lib/xp.js';
+import { continueLearning, learnerStats } from '../lib/learn.js';
 import { onlineIds } from '../realtime/hub.js';
 
 export const router = express.Router();
@@ -87,6 +88,7 @@ router.get('/', wrap(async (req, res) => {
   const activeMatches = all(`
     SELECT COUNT(*) AS n FROM game_matches WHERE status = 'active' AND (player_x = ? OR player_o = ?)`, me.id, me.id)[0].n;
 
+  const codingHubEnabled = getSetting('coding_hub_enabled', 'true') !== 'false';
   const leaderboardEnabled = getSetting('leaderboard_enabled', 'true') === 'true';
   const topPlayers = leaderboardEnabled
     ? all("SELECT id FROM users WHERE status = 'active' ORDER BY xp DESC LIMIT 5").map((u) => userById(u.id))
@@ -115,6 +117,15 @@ router.get('/', wrap(async (req, res) => {
     onlineNow,
     gameInvites: pendingInvites,
     topPlayers,
-    leaderboardEnabled
+    leaderboardEnabled,
+    codingHub: codingHubEnabled
+      ? {
+        enabled: true,
+        name: getSetting('coding_hub_name', 'Coding Hub'),
+        tagline: getSetting('coding_hub_tagline', ''),
+        continueLesson: continueLearning(me.id),
+        stats: learnerStats(me.id)
+      }
+      : { enabled: false }
   });
 }));

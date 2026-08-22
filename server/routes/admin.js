@@ -31,7 +31,16 @@ router.get('/stats', wrap(async (req, res) => {
       pendingReports: n("SELECT COUNT(*) AS n FROM reports WHERE status IN ('open','reviewing')"),
       homeworkAssignments: n('SELECT COUNT(*) AS n FROM homework WHERE is_deleted = 0'),
       announcements: n('SELECT COUNT(*) AS n FROM announcements WHERE is_deleted = 0'),
-      openInvitations: n('SELECT COUNT(*) AS n FROM invitations WHERE used_by IS NULL AND revoked = 0')
+      openInvitations: n('SELECT COUNT(*) AS n FROM invitations WHERE used_by IS NULL AND revoked = 0'),
+
+      // ---- Coding Hub ----
+      subjects: n('SELECT COUNT(*) AS n FROM subjects WHERE published = 1'),
+      topics: n('SELECT COUNT(*) AS n FROM topics WHERE published = 1'),
+      lessons: n("SELECT COUNT(*) AS n FROM lessons WHERE status = 'published'"),
+      draftLessons: n("SELECT COUNT(*) AS n FROM lessons WHERE status = 'draft'"),
+      questions: n('SELECT COUNT(*) AS n FROM questions WHERE published = 1'),
+      questionsAnswered: n('SELECT COUNT(*) AS n FROM question_attempts'),
+      lessonsCompleted: n("SELECT COUNT(*) AS n FROM lesson_progress WHERE status = 'completed'")
     },
     recentActivity: all(`
       SELECT * FROM activity_logs ORDER BY created_at DESC LIMIT 10`)
@@ -339,7 +348,9 @@ router.get('/settings', requirePermission('settings.manage'), wrap(async (_req, 
 const EDITABLE_SETTINGS = new Set([
   'registration_mode', 'club_creation', 'leaderboard_enabled', 'multiplayer_enabled', 'games_enabled',
   'community_name', 'class_name', 'welcome_message', 'xp_win', 'xp_challenge', 'xp_tournament',
-  'xp_post', 'xp_homework_complete'
+  'xp_post', 'xp_homework_complete',
+  'coding_hub_enabled', 'coding_hub_name', 'coding_hub_tagline', 'practice_question_count',
+  'show_lesson_answers', 'xp_lesson_complete', 'xp_correct_answer', 'xp_coding_challenge'
 ]);
 
 router.patch('/settings', requirePermission('settings.manage'), wrap(async (req, res) => {

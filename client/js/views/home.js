@@ -32,6 +32,7 @@ export default async function home({ mount }) {
       <div class="with-rail">
         <div class="col" style="gap:1.25rem">
           ${heroSection(data)}
+          ${codingHubSection(data)}
           ${cardsSection(data)}
           ${data.gameInvites.length ? gameInviteSection(data.gameInvites) : ''}
           ${announcementSection(data)}
@@ -50,6 +51,47 @@ export default async function home({ mount }) {
   return { destroy: unsubscribe };
 }
 
+/** "Continue learning" plus a quick look at the learner's coding progress. */
+function codingHubSection(data) {
+  const hub = data.codingHub;
+  if (!hub?.enabled) return '';
+  const { continueLesson: lesson, stats } = hub;
+
+  return `
+    <section class="card coding-hub-card">
+      <div class="card-header">
+        <span class="card-title-icon" style="background:var(--accent-soft);color:var(--accent)">${icon('code', 18)}</span>
+        <h3>${esc(hub.name)}</h3>
+        <a class="btn btn-sm btn-ghost" href="#/subjects">All subjects</a>
+      </div>
+
+      ${lesson ? `
+        <a class="continue-card card-hover" href="#/lesson/${lesson.id}">
+          <span class="card-title-icon">${icon('play', 18)}</span>
+          <div>
+            <div class="small faint">${lesson.myStatus === 'opened' ? 'Carry on with' : 'Start with'}</div>
+            <strong>${esc(lesson.title)}</strong>
+            <div class="small muted">${esc(lesson.subjectName)} &middot; ${esc(lesson.topicName)} &middot; ${lesson.minutes} min</div>
+          </div>
+          <span class="faint">${icon('arrowRight', 18)}</span>
+        </a>`
+    : `<p class="small faint center">${esc(hub.tagline || 'No lessons have been published yet.')}</p>`}
+
+      <div class="hub-stat-row">
+        <div><strong>${stats.lessonsCompleted}</strong><span>lessons done</span></div>
+        <div><strong>${stats.questionsAnswered}</strong><span>questions</span></div>
+        <div><strong>${stats.accuracy}%</strong><span>accuracy</span></div>
+        <div><strong>${stats.challengesCompleted}</strong><span>challenges</span></div>
+      </div>
+
+      <div class="row" style="gap:.6rem;flex-wrap:wrap">
+        <a class="btn btn-sm btn-primary" href="#/practice">${icon('target', 15)} Practise questions</a>
+        <a class="btn btn-sm btn-ghost" href="#/progress">${icon('chart', 15)} My progress</a>
+        <a class="btn btn-sm btn-ghost" href="#/bookmarks">${icon('bookmark', 15)} Bookmarks</a>
+      </div>
+    </section>`;
+}
+
 function heroSection(data) {
   const user = store.user;
   return `
@@ -60,9 +102,9 @@ function heroSection(data) {
           <h1>Welcome back, <span class="nowrap">${esc(user.displayName.split(' ')[0])} <span class="wave">&#128075;</span></span></h1>
           <p class="muted">${esc(data.communityName)} - here is what is happening today.</p>
           <div class="row" style="margin-top:.9rem">
-            <a class="btn btn-primary" href="#/feed">${icon('feed', 16)} Open the feed</a>
+            <a class="btn btn-primary" href="#/subjects">${icon('code', 16)} Coding Hub</a>
+            <a class="btn" href="#/feed">${icon('feed', 16)} Open the feed</a>
             <a class="btn" href="#/games">${icon('game', 16)} Gaming Hub</a>
-            <a class="btn" href="#/homework">${icon('book', 16)} Homework</a>
           </div>
         </div>
         <div class="hero-level">
