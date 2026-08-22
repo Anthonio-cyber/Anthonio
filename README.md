@@ -224,29 +224,62 @@ wiring out themselves. Each gets an address automatically, the hub prints it,
 and it works. Rock solid, no radio involved. Many thin laptops need a small
 USB-to-Ethernet adapter.
 
-### 3. Bluetooth (slow, but it does work)
+### 3. Bluetooth between two Windows laptops (no Wi-Fi needed)
 
-Not the Bluetooth *inside* a web page - browsers genuinely cannot chat that
-way. What works is **Bluetooth PAN / Bluetooth tethering**, where the
-operating system turns Bluetooth into a proper network:
+This needs no router, no cable, no hotspot and no internet. Bluetooth becomes
+a real network, and the hub runs over it unchanged.
 
-- **Windows**: pair the two computers, then Control Panel ->
-  *Devices and Printers* -> right-click the other computer ->
-  *Connect using* -> *Access point*
-- **Android**: pair, then Settings -> *Bluetooth tethering*
+Decide first who is **hosting** - that laptop runs the hub and stays put.
 
-Once joined, the hub works over it unchanged, because it is just a network to
-the app. Expect a few devices at most and slower pictures - text chat is fine.
+**Step 1 - Pair the laptops (both, no permission needed)**
 
-**Does it need administrator?** Pairing and joining a Bluetooth PAN does
-**not** - any normal user can do it. The only step that asks for permission is
-the firewall, and only on the computer *hosting* the hub. Double-click
-`allow-classmates.bat`, click **Yes**, and it is done for good. On a personal
-laptop that is one click with no password. On a locked-down school laptop it
-may be refused - in that case host on a personal laptop instead.
+On both laptops: *Settings* -> *Bluetooth & devices* -> make sure Bluetooth is
+**On** -> *Add device* -> *Bluetooth* -> pick the other laptop -> confirm the
+same code appears on both -> *Connect*.
 
-Classmates who only open the address in their browser never need any
-permission at all.
+**Step 2 - Let the firewall through (host only, one time)**
+
+Double-click **allow-classmates.bat** and click **Yes**.
+Do this once, ever. Classmates never need it.
+
+**Step 3 - Join the network (the OTHER laptop)**
+
+Press the Windows key, type **Control Panel**, open it, then go to
+*Hardware and Sound* -> **Devices and Printers**.
+(Quicker: press Windows+R, type `control printers`, press Enter.)
+
+Right-click the **host laptop** -> **Connect using** -> **Access point**.
+
+After a few seconds it says connected. That is the network created.
+
+**Step 4 - Start the hub (host)**
+
+Double-click **start.bat**. It prints something like:
+
+```
+Classmates on the same Wi-Fi or hotspot open:
+    http://169.254.12.34:3000
+```
+
+An address starting `169.254.` is normal for Bluetooth - that is the right one.
+
+**Step 5 - Open it (the other laptop)**
+
+Type that exact address into any browser. Sign in and start messaging.
+
+**If it does not work**
+
+- *No "Connect using" option*: the Bluetooth driver does not support PAN.
+  Use an Ethernet cable instead.
+- *Address does not load*: the firewall step was skipped, or you used the
+  wrong address. On the host press Windows+R, type `cmd`, press Enter and run
+  `ipconfig`. Use the address under **Bluetooth Network Connection**.
+- *Very slow with pictures*: normal. Bluetooth is much slower than Wi-Fi.
+  Text chat is unaffected.
+
+**How many people?** Bluetooth realistically handles about **two or three
+laptops**. For a whole class, a cheap second-hand Wi-Fi router (option 1) is
+the only sensible way - it needs no internet and handles everyone at once.
 
 ### 4. A phone hotspot with mobile data OFF
 

@@ -173,9 +173,13 @@ server.listen(config.port, () => {
 
   if (shared.length) {
     console.log('');
-    console.log('  Classmates on the same Wi-Fi or hotspot open:');
-    for (const address of shared) console.log(`      ${address}`);
+    console.log('  Classmates on the same network open one of these:');
+    for (const address of shared) {
+      const viaBluetooth = address.includes('://169.254.');
+      console.log(`      ${address}${viaBluetooth ? '   (Bluetooth or cable)' : ''}`);
+    }
     console.log('');
+    console.log('  Works over Bluetooth, a cable, a router or Wi-Fi.');
     console.log('  No internet is needed - only the same network.');
     console.log('  Keep this window open while they are using the hub.');
   } else {
