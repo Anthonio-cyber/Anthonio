@@ -7,6 +7,10 @@ and a full administration area together in one application.
 The hub is **private by design**. Nobody can see anything until they sign in,
 and an administrator controls who is allowed to join.
 
+It installs as a **real app** on a laptop, phone or tablet, and can also be
+built as a **Windows, macOS or Linux desktop program**. It keeps working when
+the connection drops.
+
 There are **no AI features** anywhere in this project.
 
 ---
@@ -18,7 +22,7 @@ There are **no AI features** anywhere in this project.
 | **Home** | Welcome dashboard with homework due, the latest announcement, unread messages, your clubs, your streak, recent posts, events and who is online |
 | **Feed** | Class posts: text, pictures, polls, homework questions, study discussions and class announcements, with likes, comments, sharing, saving and reporting |
 | **Messages** | One-to-one and club group chats with live delivery, typing indicators, read receipts, online status, reactions, replies, editing, deleting and blocking |
-| **Games** | Nine browser games. Tic-Tac-Toe, Rock Paper Scissors, Snake, Memory Match, Reaction Test, Number Guessing, Quiz Battle, Typing Challenge and Connect Four |
+| **Games** | Ten browser games. Tic-Tac-Toe, Rock Paper Scissors, Snake, Memory Match, Reaction Test, Number Guessing, Quiz Battle, Typing Challenge, Connect Four and **Market World**, a full 3D farming and supermarket simulation |
 | **Multiplayer** | Invite a classmate to Tic-Tac-Toe, Connect Four, Rock Paper Scissors, Reaction Battle or Quiz Battle. The server decides every result |
 | **Clubs** | Create clubs, invite and approve members, four club roles, club posts, a dedicated club chat and club events |
 | **Homework** | Assignments with subject, due date, priority, instructions and attachments, plus per-student progress and completion statistics for teachers |
@@ -85,6 +89,280 @@ first. See **Settings** below.
 
 This works from Windows Command Prompt, PowerShell, Windows Terminal, the
 macOS or Linux terminal, the VS Code terminal, or a hosting service.
+
+---
+
+## Installing it as a real app
+
+The hub is not only a website. It installs as a proper app with its own icon
+and its own window, with no address bar.
+
+### On a laptop or phone (easiest)
+
+1. Open the hub in Chrome, Edge or Safari
+2. **Chrome / Edge**: open the browser menu and choose **Install app**
+   (or use the **Install the app** button in Settings)
+   **iPhone / iPad**: tap **Share**, then **Add to Home Screen**
+   **Android**: tap the menu, then **Install app**
+3. It now appears with the other apps on the device
+
+It also gets shortcuts, so a right-click (or long press) on the icon jumps
+straight to Messages, Homework, Games or the Feed.
+
+> Browsers only allow installing over `https` or on `localhost`. If classmates
+> open the hub over the network on plain `http`, they can still use everything
+> normally - they just cannot install it until the hub is behind `https`.
+> See **Publishing it** below.
+
+### As a Windows / macOS / Linux desktop program
+
+This builds a real installer that puts "Grade 8 Hub" in the Start Menu or
+Applications folder:
+
+```
+npm run app:setup       # once - fetches the desktop build tools
+npm run app             # opens the app in its own window
+npm run app:build:win   # builds a Windows installer into dist-app/
+```
+
+Use `app:build:mac` or `app:build:linux` for the other systems. You can only
+build a Windows installer on Windows, a Mac one on a Mac, and so on.
+
+The desktop app runs the class server inside itself, so on that computer the
+hub works with **no network at all**. It keeps its database, uploads and its
+own sign-in secret in your normal application-data folder, so reinstalling or
+updating the app never loses the class data.
+
+**The installed app does not need Node.js.** It carries its own copy, so it
+runs on a computer with nothing else installed. (Node.js is only needed to
+*build* the installer, or to run the hub from source with `npm start`.)
+
+### Getting installers without owning every computer
+
+You do not need a Windows machine to make a Windows installer. GitHub can
+build all three for you:
+
+1. Push this project to GitHub
+2. Open the **Actions** tab and run **Build installers**
+   (or push a version tag: `git tag v1.0.0 && git push --tags`)
+3. When it finishes, download them from **Artifacts** at the bottom of the run
+
+Tagging also creates a **Release** with all three installers attached, which
+is the easiest way to hand the app to classmates - just send them the link.
+
+The installers are unsigned, because code-signing certificates cost money.
+Windows will say the publisher is unknown: choose **More info** then
+**Run anyway**. On macOS, right-click the app and choose **Open** the first time.
+
+---
+
+## Using it with NO internet (hotspot)
+
+Socket.io, messaging, online dots and everything else work with **no internet
+at all**. They only need the devices to be on the *same network* - and a phone
+hotspot counts. Nothing goes through the school Wi-Fi.
+
+Messages arrive in about 50 milliseconds this way. Tested, not guessed.
+
+### Set it up once
+
+**1. Make a network**
+   On the host phone or laptop, turn on the **hotspot** (Settings -> Hotspot).
+   Everyone else connects to that hotspot. Mobile data can even stay off -
+   the hotspot alone is enough for the hub to work.
+
+**2. Allow classmates through the firewall (Windows, once only)**
+   Right-click **allow-classmates.bat** -> **Run as administrator**.
+   Windows blocks other devices until you do this, and it is the most common
+   reason classmates cannot connect.
+
+**3. Start the hub on the host computer**
+   Double-click **start.bat** (or run `npm start`). It prints something like:
+
+   ```
+   Classmates on the same Wi-Fi or hotspot open:
+       http://192.168.43.1:3000
+   ```
+
+**4. Everyone else opens that address**
+   In any browser on their phone or laptop. That is it - they can sign up
+   with an invitation code and start messaging.
+
+### Things worth knowing
+
+- The host computer must stay **on and awake** while people are using it.
+- Everyone must stay connected to the **same hotspot**. Walk out of range and
+  you go offline - what you write is saved and sent when you come back.
+- The address changes when you join a different network. Just read the new
+  one off the screen when you start the hub.
+- Only **one** computer runs the hub. If everybody installs the desktop app
+  and opens it, each person gets their own private empty hub and they will
+  not see each other.
+
+## No Wi-Fi at all? Other ways to connect
+
+The hub never contacts the internet, and it does not care *what kind* of
+network it runs on. It accepts connections on **every** network the computer
+has - Wi-Fi, Ethernet cable, Bluetooth or USB. Anything that gives the devices
+an IP address will work.
+
+The one rule that cannot be avoided: **the devices must be joined by
+something.** No program can move a message between two devices that have no
+connection at all. So pick whichever of these you can actually use.
+
+### 1. A cheap Wi-Fi router (best for a group)
+
+A router does **not** need internet to work. Plug one in, let everyone connect
+to it, and run the hub on the host laptop. The router just moves messages
+between the devices in the room. A used or travel router costs very little and
+handles a whole class.
+
+### 2. An Ethernet cable (best for two computers)
+
+Plug a normal network cable between two laptops. Modern laptops sort the
+wiring out themselves. Each gets an address automatically, the hub prints it,
+and it works. Rock solid, no radio involved. Many thin laptops need a small
+USB-to-Ethernet adapter.
+
+### 3. Bluetooth between two Windows laptops (no Wi-Fi needed)
+
+This needs no router, no cable, no hotspot and no internet. Bluetooth becomes
+a real network, and the hub runs over it unchanged.
+
+Decide first who is **hosting** - that laptop runs the hub and stays put.
+
+**Step 1 - Pair the laptops (both, no permission needed)**
+
+On both laptops: *Settings* -> *Bluetooth & devices* -> make sure Bluetooth is
+**On** -> *Add device* -> *Bluetooth* -> pick the other laptop -> confirm the
+same code appears on both -> *Connect*.
+
+**Step 2 - Let the firewall through (host only, one time)**
+
+Double-click **allow-classmates.bat** and click **Yes**.
+Do this once, ever. Classmates never need it.
+
+**Step 3 - Join the network (the OTHER laptop)**
+
+Press the Windows key, type **Control Panel**, open it, then go to
+*Hardware and Sound* -> **Devices and Printers**.
+(Quicker: press Windows+R, type `control printers`, press Enter.)
+
+Right-click the **host laptop** -> **Connect using** -> **Access point**.
+
+After a few seconds it says connected. That is the network created.
+
+**Step 4 - Start the hub (host)**
+
+Double-click **start.bat**. It prints something like:
+
+```
+Classmates on the same Wi-Fi or hotspot open:
+    http://169.254.12.34:3000
+```
+
+An address starting `169.254.` is normal for Bluetooth - that is the right one.
+
+**Step 5 - Open it (the other laptop)**
+
+Type that exact address into any browser. Sign in and start messaging.
+
+**If it does not work**
+
+- *No "Connect using" option*: the Bluetooth driver does not support PAN.
+  Use an Ethernet cable instead.
+- *Address does not load*: the firewall step was skipped, or you used the
+  wrong address. On the host press Windows+R, type `cmd`, press Enter and run
+  `ipconfig`. Use the address under **Bluetooth Network Connection**.
+- *Very slow with pictures*: normal. Bluetooth is much slower than Wi-Fi.
+  Text chat is unaffected.
+
+**How many people?** Bluetooth realistically handles about **two or three
+laptops**. For a whole class, a cheap second-hand Wi-Fi router (option 1) is
+the only sensible way - it needs no internet and handles everyone at once.
+
+### 4. A phone hotspot with mobile data OFF
+
+Worth trying even with no data plan. Most Android phones will still switch the
+hotspot on and create a network, because sharing data and making a network are
+two separate things. A laptop hotspot often refuses without a connection to
+share, but a phone frequently does not.
+
+### What will not work
+
+- Two laptops in a room with **no** router, cable, Bluetooth or hotspot
+  between them. There is no path, so there is nothing for messages to travel
+  along.
+- Everybody installing the desktop app and expecting to find each other. Each
+  installation is its own private hub. One computer hosts; everyone else opens
+  its address.
+
+## What works offline
+
+The hub keeps working when the connection drops:
+
+| Works offline | Needs the class server |
+|---|---|
+| The whole app opens, with every screen | Sending messages and posts |
+| **All ten games**, including Market World and the ones against the computer | Live multiplayer games |
+| The last copy of your dashboard, homework, announcements, feed, clubs and leaderboard | Seeing anything somebody else just added |
+| Scores you earn are saved and sent automatically when you are back | Signing in for the first time on a device |
+
+A bar appears at the bottom of the screen when you are offline, so it is always
+clear whether you are looking at live data or the last saved copy.
+
+Private conversations are never saved on the device, and everything cached is
+wiped when you sign out.
+
+> One thing to be clear about: this is a *class network*, so "offline" means
+> your device has no connection. The computer running the hub still has to be
+> switched on for classmates to reach it. The desktop app is the exception -
+> there the server runs on your own computer.
+
+---
+
+## Market World
+
+Market World is the biggest thing in the Gaming Hub: a 3D farming, shop-keeping
+and business-building game that runs in the browser with no plugin, no download
+and no game engine behind it. Every model, sound and animation in it is
+generated by the code in `client/js/games/market-world/`.
+
+**The loop.** Plant seeds, water them, harvest, turn the raw crops into
+something worth more, stock the shelves, serve the queue at the till, spend the
+takings, and do it all again at a bigger size.
+
+| Part of the game | What it does |
+|---|---|
+| **Farm** | Thirteen crops with real growth stages, watering, yields and seed costs. Sprinklers and auto-harvesters can take it over later |
+| **Animals** | Chickens, cows, goats and sheep that need feeding and produce eggs, milk and wool |
+| **Processing** | Ten machines and twenty-five recipes. Tomatoes become sauce, wheat becomes flour and then bread, milk becomes cheese |
+| **Shop** | Shelves you assign products to. An empty shelf really does stop selling, and shoppers notice |
+| **Shoppers** | Six kinds of customer with their own budgets, basket sizes and patience. They walk in, pick things up, queue, pay and leave |
+| **Checkouts** | Stand behind a till yourself, hire cashiers, or unlock self-checkouts. Long queues cost you reputation |
+| **Staff** | Farmers, stockers, cashiers, cleaners, delivery workers and managers, each with five training levels and a wage |
+| **Expansion** | Five building stages from a roadside shop to a mega market. The building, the field, the car park and the yard all physically grow |
+| **Departments** | Ten departments that open as you level up, each bringing new products |
+| **Marketing** | Seven campaign types on timers, and a marketing department to upgrade |
+| **Events** | Weekend rushes, festivals, heatwaves and discount days that change demand and traffic |
+| **Deliveries** | Four vehicles that run their own round trips from the yard to the warehouse |
+| **World map** | Six cities with their own economy, music, products and entry requirements. Nothing unlocks by itself |
+| **Progress** | Levels, missions, achievements, daily rewards, gems, and a customisable character |
+
+**Controls.** The thumb stick on the left, or WASD and the arrow keys. Drag
+anywhere to swing the camera and pinch to zoom. Walk up to a plot, a shelf, a
+machine, a pen or a till and press the big green button - hold it down to keep
+going. The buttons along the bottom open the farm, the store, the staff,
+marketing, the world map and everything else.
+
+**Saving.** The whole business is written to the device it is played on every
+few seconds, in one plain JSON object, so it survives closing the tab. Nothing
+about Market World is sent to the server except the score for the leaderboard.
+
+**Performance.** The renderer is about 400 lines of WebGL 1 with a single
+shader. Scenery is merged into a handful of meshes, shoppers are pooled and
+capped, distant characters drop detail, and there is a Light graphics setting
+for older phones. It targets a steady frame rate on a mid-range Android device.
 
 ---
 
@@ -206,6 +484,11 @@ npm run reset-db
 | `npm run seed` | Sets up the database without starting the server |
 | `npm run reset-db` | Deletes everything and builds a fresh database |
 | `npm run create-admin` | Creates or repairs an administrator account |
+| `npm run app:setup` | Fetches the tools for building the desktop app (once) |
+| `npm run app` | Opens the hub as a desktop app in its own window |
+| `npm run app:build:win` | Builds a Windows installer into `dist-app/` |
+| `npm run app:build:mac` | Builds a macOS disk image |
+| `npm run app:build:linux` | Builds a Linux AppImage and .deb |
 
 ---
 
@@ -269,13 +552,13 @@ This is a private class network, and it is built that way:
 grade8-hub/
 ├── client/                 the browser application
 │   ├── index.html
-│   ├── styles/             base, layout, components, pages, games
+│   ├── styles/             base, layout, components, pages, games, market-world
 │   └── js/
 │       ├── app.js          entry point
 │       ├── lib/            api, router, store, ui, icons, helpers
 │       ├── components/     shell, post card, shared pieces
 │       ├── views/          one file per screen
-│       └── games/          one file per game
+│       └── games/          one file per game, plus market-world/
 ├── server/                 the backend
 │   ├── index.js            express app and start-up
 │   ├── db/                 schema, connection, example data
@@ -283,8 +566,9 @@ grade8-hub/
 │   ├── routes/             one file per area of the API
 │   └── realtime/           the live layer
 ├── database/               the SQLite file lives here
-├── public/                 favicon and static files
+├── public/                 icons, app manifest and the offline worker
 ├── uploads/                pictures members upload
+├── desktop/                the desktop app wrapper
 ├── scripts/                setup, build and admin scripts
 ├── .env.example
 ├── start.bat               Windows start file
@@ -294,6 +578,53 @@ grade8-hub/
 
 The browser code is plain ES modules, so there is **no build step and no
 bundler**. What you read in `client/` is exactly what runs.
+
+---
+
+## Publishing it
+
+### Just for our class, on one computer
+
+Run `npm start` (or open the desktop app) on one computer and leave it on.
+Everybody else opens `http://THAT-COMPUTERS-ADDRESS:3000` on the same Wi-Fi.
+Find the address with `ipconfig` on Windows, or `ip addr` on macOS and Linux.
+
+Before you do, in `.env`:
+
+- set `NODE_ENV=production`
+- set a long random `JWT_SECRET`
+- set `SEED_DEMO_DATA=false`
+
+### On the internet, so it works from home
+
+Any host that runs Node.js will do. The steps are the same everywhere:
+
+1. Put the project on the host (a Git push, or upload the files)
+2. Run `npm install` then `npm run build`
+3. Start it with `npm start`
+4. Point your domain at it and put it behind `https`
+
+The hub keeps its data in a single SQLite file, so choose a host that gives you
+a **persistent disk**. On hosts with a temporary filesystem the database is
+wiped on every restart. Set `DATABASE_FILE` and `UPLOAD_DIR` to paths on that
+disk.
+
+Things to do before letting anybody in:
+
+- A long random `JWT_SECRET` in `.env` - never the example one
+- `NODE_ENV=production`
+- `SEED_DEMO_DATA=false`, so the example students are not created
+- Sign in as the administrator and change the password
+- Set **Registration** to *Invitation code required* in Admin → Settings
+- Back up `database/grade8hub.db` regularly - that one file is everything
+
+Serving it over `https` also lets everybody install it as an app.
+
+### A note on privacy
+
+This hub holds real messages between real children. Keep it invitation-only,
+keep it off public search engines, and make sure a responsible adult is one of
+the administrators.
 
 ---
 

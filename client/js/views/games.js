@@ -13,7 +13,7 @@ import { navigate } from '../lib/router.js';
 const GAME_ICON = {
   tic_tac_toe: 'grid', rps: 'target', snake: 'zap', memory_match: 'brain',
   reaction: 'clock', number_guess: 'search', quiz_battle: 'book',
-  typing: 'keyboard', connect_four: 'grid'
+  typing: 'keyboard', connect_four: 'grid', market_world: 'cart'
 };
 
 export default async function games({ mount }) {

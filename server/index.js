@@ -1,4 +1,5 @@
 import http from 'node:http';
+import os from 'node:os';
 import path from 'node:path';
 import fs from 'node:fs';
 import express from 'express';
@@ -42,9 +43,17 @@ app.use(helmet({
       connectSrc: ["'self'", 'ws:', 'wss:'],
       fontSrc: ["'self'", 'data:'],
       objectSrc: ["'none'"],
-      frameAncestors: ["'self'"]
+      frameAncestors: ["'self'"],
+      manifestSrc: ["'self'"],
+      workerSrc: ["'self'"],
+      // The hub is normally reached over plain http on a school network
+      // (for example http://192.168.1.5:3000). Upgrading requests to https
+      // would break every one of them, so it stays switched off.
+      upgradeInsecureRequests: null
     }
   },
+  // Allow classmates on the same network to load pictures and icons.
+  crossOriginResourcePolicy: { policy: 'cross-origin' },
   crossOriginEmbedderPolicy: false
 }));
 app.use(compression());
@@ -92,6 +101,21 @@ app.use('/uploads', (req, res, next) => {
 // ---------------------------------------------------------------------------
 const clientDir = path.join(config.root, 'client');
 const publicDir = path.join(config.root, 'public');
+// The service worker controls every page, so it must be served from the
+// root with no caching of its own - otherwise updates never reach anybody.
+app.get('/sw.js', (_req, res) => {
+  res.set('Service-Worker-Allowed', '/');
+  res.set('Cache-Control', 'no-cache, no-store, must-revalidate');
+  res.type('application/javascript');
+  res.sendFile(path.join(publicDir, 'sw.js'));
+});
+
+app.get('/manifest.webmanifest', (_req, res) => {
+  res.type('application/manifest+json');
+  res.set('Cache-Control', 'no-cache');
+  res.sendFile(path.join(publicDir, 'manifest.webmanifest'));
+});
+
 app.use(express.static(publicDir, { index: false }));
 app.use(express.static(clientDir, { index: false, maxAge: isProduction ? '1h' : 0 }));
 
@@ -125,12 +149,44 @@ app.use((err, _req, res, _next) => {
 const server = http.createServer(app);
 attachRealtime(server);
 
+/** The addresses other people on the same Wi-Fi or hotspot can use. */
+export function networkAddresses(port = config.port) {
+  const found = [];
+  for (const addresses of Object.values(os.networkInterfaces())) {
+    for (const address of addresses || []) {
+      if (address.family === 'IPv4' && !address.internal) {
+        found.push(`http://${address.address}:${port}`);
+      }
+    }
+  }
+  return found;
+}
+
 server.listen(config.port, () => {
   const line = '='.repeat(58);
+  const shared = networkAddresses();
+
   console.log(`\n${line}`);
   console.log('  GRADE 8 HUB is running');
   console.log(line);
-  console.log(`  Open in your browser:  http://localhost:${config.port}`);
+  console.log(`  On this computer:      http://localhost:${config.port}`);
+
+  if (shared.length) {
+    console.log('');
+    console.log('  Classmates on the same network open one of these:');
+    for (const address of shared) {
+      const viaBluetooth = address.includes('://169.254.');
+      console.log(`      ${address}${viaBluetooth ? '   (Bluetooth or cable)' : ''}`);
+    }
+    console.log('');
+    console.log('  Works over Bluetooth, a cable, a router or Wi-Fi.');
+    console.log('  No internet is needed - only the same network.');
+    console.log('  Keep this window open while they are using the hub.');
+  } else {
+    console.log('  (No network connection found, so only this computer can use it.)');
+  }
+
+  console.log('');
   console.log(`  Database file:         ${path.relative(config.root, config.databaseFile)}`);
   console.log(`  Mode:                  ${config.env}`);
   console.log(`${line}\n  Press Ctrl + C to stop the server.\n`);

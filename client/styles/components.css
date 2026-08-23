@@ -467,3 +467,48 @@ tbody tr:hover { background: var(--surface-2); }
 .alert-warning { background: var(--warning-soft); color: var(--warning); border-color: color-mix(in srgb, var(--warning) 25%, transparent); }
 .alert-danger  { background: var(--danger-soft); color: var(--danger); border-color: color-mix(in srgb, var(--danger) 25%, transparent); }
 .alert-success { background: var(--success-soft); color: var(--success); border-color: color-mix(in srgb, var(--success) 25%, transparent); }
+
+/* ---------- Offline banner ---------- */
+.offline-bar {
+  position: fixed;
+  left: 50%;
+  bottom: 1rem;
+  transform: translateX(-50%);
+  z-index: 150;
+  display: flex;
+  align-items: center;
+  gap: .55rem;
+  max-width: min(560px, calc(100vw - 1.5rem));
+  padding: .6rem .95rem;
+  border-radius: 99px;
+  background: var(--warning-soft);
+  color: var(--warning);
+  border: 1px solid color-mix(in srgb, var(--warning) 40%, transparent);
+  box-shadow: var(--shadow-lg);
+  font-size: .82rem;
+  font-weight: 550;
+  line-height: 1.4;
+  animation: fade-up 200ms var(--ease);
+}
+.offline-bar.saved { background: var(--info-soft); color: var(--info); border-color: color-mix(in srgb, var(--info) 40%, transparent); }
+.offline-bar svg { flex: 0 0 auto; }
+
+@media (max-width: 900px) {
+  .offline-bar { bottom: calc(var(--bottom-nav-h) + .6rem); border-radius: var(--radius); }
+}
+
+/* Things that need the server are dimmed while offline. */
+.is-offline [data-needs-server] { opacity: .45; pointer-events: none; }
+
+/* ---------- Install the app ---------- */
+.install-card {
+  background: linear-gradient(135deg, color-mix(in srgb, var(--accent) 14%, var(--surface)), var(--surface));
+  border: 1px solid color-mix(in srgb, var(--accent) 35%, var(--border));
+}
+.install-icon {
+  width: 46px; height: 46px; flex: 0 0 46px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  color: #fff;
+  display: grid; place-items: center;
+}
