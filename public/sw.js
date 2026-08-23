@@ -3,7 +3,7 @@
 
    What works with no connection at all:
      - the whole app shell (every screen, style and script)
-     - all nine games, including the ones against the computer
+     - all ten games, including Market World and the ones against the computer
      - the last copy of your dashboard, homework, announcements,
        feed, clubs and leaderboard that was loaded while online
 
@@ -15,7 +15,7 @@
    is wiped when you sign out.
    ========================================================== */
 
-const VERSION = 'g8h-v2';
+const VERSION = 'g8h-v3';
 const SHELL_CACHE = `${VERSION}-shell`;
 const DATA_CACHE = `${VERSION}-data`;
 
@@ -25,7 +25,7 @@ const SHELL = [
   '/icons/icon-192.png', '/icons/icon-512.png', '/icons/icon-64.png',
 
   '/styles/base.css', '/styles/layout.css', '/styles/components.css',
-  '/styles/pages.css', '/styles/games.css',
+  '/styles/pages.css', '/styles/games.css', '/styles/market-world.css',
 
   '/js/app.js',
   '/js/lib/api.js', '/js/lib/dom.js', '/js/lib/icons.js', '/js/lib/router.js',
@@ -40,7 +40,22 @@ const SHELL = [
 
   '/js/games/tictactoe.js', '/js/games/connect-four.js', '/js/games/rps.js',
   '/js/games/snake.js', '/js/games/memory.js', '/js/games/reaction.js',
-  '/js/games/number-guess.js', '/js/games/quiz.js', '/js/games/typing.js'
+  '/js/games/number-guess.js', '/js/games/quiz.js', '/js/games/typing.js',
+
+  // Market World - a 3D game, so it arrives as a folder of modules.
+  '/js/games/market-world/index.js', '/js/games/market-world/game.js',
+  '/js/games/market-world/engine/math.js', '/js/games/market-world/engine/geometry.js',
+  '/js/games/market-world/engine/renderer.js', '/js/games/market-world/engine/input.js',
+  '/js/games/market-world/engine/audio.js',
+  '/js/games/market-world/data/catalog.js', '/js/games/market-world/data/locations.js',
+  '/js/games/market-world/data/progress.js',
+  '/js/games/market-world/systems/state.js', '/js/games/market-world/systems/sim.js',
+  '/js/games/market-world/systems/meta.js', '/js/games/market-world/systems/customers.js',
+  '/js/games/market-world/systems/staff.js',
+  '/js/games/market-world/world/layout.js', '/js/games/market-world/world/build.js',
+  '/js/games/market-world/world/character.js', '/js/games/market-world/world/props.js',
+  '/js/games/market-world/world/animals.js', '/js/games/market-world/world/fx.js',
+  '/js/games/market-world/ui/interface.js'
 ];
 
 /**
