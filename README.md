@@ -349,36 +349,52 @@ for a card. Two things come with that:
 Good enough to try it and show friends. Not good enough for a class that
 expects its messages to still be there tomorrow.
 
-### Keeping your data
+### Keeping your data on free hosting (no card needed)
 
-Pick whichever suits you:
+Free hosting has no permanent disk, so the hub can save itself into a
+**private GitHub repository** instead and put everything back when it starts
+again. It costs nothing, needs no card, and keeps accounts, messages, posts,
+clubs and uploaded pictures.
 
-| Option | Cost | Data kept? |
-|---|---|---|
-| Render free plan | Free | No - reset whenever it sleeps |
-| Render + a 1 GB disk | A few pounds/dollars a month | Yes |
-| Host it yourself on a laptop | Free | Yes - but only reachable on your own network |
+It saves every 10 minutes **and** the moment the host puts the server to
+sleep, so going to sleep loses nothing.
 
-To add a disk later, put this back into `render.yaml` under the service and
-change `plan: free` to `plan: starter`:
+**1. Make a private repository for the backups**
 
-```yaml
-    disk:
-      name: grade8-hub-data
-      mountPath: /data
-      sizeGB: 1
-```
+On GitHub: **New repository** -> name it `grade8-backup` -> tick **Private**
+-> tick **Add a README file** -> **Create**.
 
-and point the two paths at it:
+**2. Make a token so the hub can write to it**
 
-```yaml
-      - key: DATABASE_FILE
-        value: /data/grade8hub.db
-      - key: UPLOAD_DIR
-        value: /data/uploads
-```
+Go to <https://github.com/settings/personal-access-tokens/new>
 
-Nothing else changes, and nothing in the code needs touching.
+- **Token name**: `grade8-hub-backup`
+- **Expiration**: whatever suits you
+- **Repository access**: *Only select repositories* -> pick `grade8-backup`
+- **Permissions** -> *Repository permissions* -> **Contents**: **Read and write**
+- **Generate token**, then copy it (you only see it once)
+
+**3. Tell the hub about it**
+
+In Render: your service -> **Environment** -> **Add environment variable**:
+
+| Key | Value |
+|---|---|
+| `BACKUP_REPO` | `your-username/grade8-backup` |
+| `BACKUP_TOKEN` | the token you just copied |
+
+Save. Render restarts the service, and from then on your data survives.
+
+**Checking it works.** The service log shows
+`[backup] Saving the class data to ... every 10 minutes` on start, and
+`[backup] Restored the class data from the saved copy.` after a sleep.
+
+**Limits.** The whole backup must stay under about 25 MB, which is plenty for
+messages but not for hundreds of photos. If it grows past that the log says
+so plainly and stops trying, rather than failing quietly.
+
+Leave `BACKUP_REPO` and `BACKUP_TOKEN` unset and nothing happens - the hub
+runs exactly as before.
 
 ### Any host with Docker
 

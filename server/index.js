@@ -13,6 +13,7 @@ import { migrate, db } from './db/index.js';
 import { attachUser } from './lib/auth.js';
 import { HttpError } from './lib/util.js';
 import { attachRealtime } from './realtime/index.js';
+import { startBackupSchedule, saveBackup, stopBackupSchedule, backupEnabled } from './lib/backup.js';
 
 import { router as authRouter } from './routes/auth.js';
 import { router as usersRouter } from './routes/users.js';
@@ -190,10 +191,20 @@ server.listen(config.port, () => {
   console.log(`  Database file:         ${path.relative(config.root, config.databaseFile)}`);
   console.log(`  Mode:                  ${config.env}`);
   console.log(`${line}\n  Press Ctrl + C to stop the server.\n`);
+
+  startBackupSchedule();
 });
 
-function shutdown(signal) {
+async function shutdown(signal) {
   console.log(`\nStopping Grade 8 Hub (${signal})...`);
+  stopBackupSchedule();
+
+  // Free hosting sends this signal before wiping the disk, so this is
+  // the last chance to keep the class data.
+  if (backupEnabled()) {
+    try { await saveBackup(`shutdown:${signal}`); } catch { /* going down anyway */ }
+  }
+
   server.close(() => {
     try { db.close(); } catch { /* already closed */ }
     process.exit(0);
