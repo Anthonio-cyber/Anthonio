@@ -9,8 +9,14 @@ import { renderShell, setPageTitle } from './components/shell.js';
 import { renderAuth } from './views/auth.js';
 import { emptyState } from './components/common.js';
 import { toast } from './lib/ui.js';
+import { registerServiceWorker, startConnectionWatch, watchInstallPrompt, flushQueue, isLive } from './lib/offline.js';
 
 applyTheme();
+
+// Turn the page into an installable app that keeps working offline.
+registerServiceWorker();
+watchInstallPrompt();
+startConnectionWatch();
 
 async function boot() {
   try {
@@ -19,9 +25,12 @@ async function boot() {
     document.getElementById('app').innerHTML = `
       <div class="boot-screen" style="display:grid;place-items:center;min-height:100vh;text-align:center;padding:2rem">
         <div>
-          <h1>The Grade 8 Hub is not responding</h1>
-          <p class="muted">Make sure the server is running, then reload this page.</p>
-          <p class="small faint">Start it from the project folder with <code>npm start</code>.</p>
+          <div class="boot-logo">G8</div>
+          <h1>${navigator.onLine ? 'The Grade 8 Hub is not responding' : 'You are offline'}</h1>
+          <p class="muted">${navigator.onLine
+    ? 'Make sure the class server is running, then reload this page.'
+    : 'Connect to the same network as the class server and try again.'}</p>
+          <p class="small faint">On the computer running it, start the hub with <code>npm start</code>.</p>
           <button class="btn btn-primary" onclick="location.reload()">Try again</button>
         </div>
       </div>`;
@@ -60,6 +69,11 @@ async function startApp() {
 
   startRouter(mount);
   setInterval(refreshCounts, 60_000);
+
+  // Send up anything that was earned while offline.
+  if (isLive()) flushQueue().then((sent) => {
+    if (sent) toast(`${sent} game ${sent === 1 ? 'score' : 'scores'} sent now that you are back online.`, 'success');
+  });
 
   if (store.user.mustChangePassword) {
     const { modal } = await import('./lib/ui.js');

@@ -120,7 +120,8 @@ export const GAME_CATALOGUE = [
   { key: 'number_guess', name: 'Number Guessing',   description: 'Find the secret number in as few guesses as possible.',     icon: 'N', category: 'puzzle', multiplayer: 0, score_label: 'Guesses', score_order: 'asc' },
   { key: 'quiz_battle',  name: 'Quiz Battle',       description: 'School subject questions against the clock or a classmate.', icon: 'Q', category: 'learning', multiplayer: 1, score_label: 'Points', score_order: 'desc' },
   { key: 'typing',       name: 'Typing Challenge',  description: 'Type the sentence as fast and accurately as you can.',      icon: 'T', category: 'learning', multiplayer: 0, score_label: 'WPM', score_order: 'desc' },
-  { key: 'connect_four', name: 'Connect Four',      description: 'Drop discs and line up four before your opponent does.',    icon: '4', category: 'strategy', multiplayer: 1, score_label: 'Wins', score_order: 'desc' }
+  { key: 'connect_four', name: 'Connect Four',      description: 'Drop discs and line up four before your opponent does.',    icon: '4', category: 'strategy', multiplayer: 1, score_label: 'Wins', score_order: 'desc' },
+  { key: 'market_world', name: 'Market World',     description: 'Grow crops, stock the shelves and build a supermarket empire in 3D.', icon: 'MW', category: 'simulation', multiplayer: 0, score_label: 'Total earned', score_order: 'desc' }
 ];
 
 export const ACHIEVEMENTS = [

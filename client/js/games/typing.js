@@ -18,6 +18,7 @@ export default function typing({ root, onScore }) {
   let started = null;
   let finished = false;
   let timer = null;
+  let lastLength = 0;
 
   root.innerHTML = `
     <div class="game-stage">
@@ -50,6 +51,7 @@ export default function typing({ root, onScore }) {
     clearInterval(timer);
     input.value = '';
     input.disabled = false;
+    lastLength = 0;
     result.innerHTML = '';
     wpmLabel.textContent = '0 WPM';
     accuracyLabel.textContent = '100% accurate';
@@ -67,17 +69,39 @@ export default function typing({ root, onScore }) {
     }).join('');
   }
 
+  // The fastest people in the world type a little over 200 WPM, so anything
+  // above this came from pasting rather than typing.
+  const MAX_WPM = 220;
+
   function stats(typed) {
     const elapsed = (Date.now() - started) / 1000;
     const correct = [...typed].filter((char, index) => char === target[index]).length;
     const accuracy = typed.length ? Math.round((correct / typed.length) * 100) : 100;
-    const wpm = elapsed > 0 ? Math.round((typed.length / 5) / (elapsed / 60)) : 0;
-    return { elapsed, accuracy, wpm };
+    const raw = elapsed > 0 ? Math.round((typed.length / 5) / (elapsed / 60)) : 0;
+    return { elapsed, accuracy, wpm: Math.min(raw, MAX_WPM), capped: raw > MAX_WPM };
+  }
+
+  // Pasting the sentence in is not typing it.
+  for (const event of ['paste', 'drop']) {
+    input.addEventListener(event, (e) => {
+      e.preventDefault();
+      result.innerHTML = `<div class="alert alert-warning" style="margin-top:1rem">${icon('info', 17)}
+        <div>Type the sentence out - pasting it in does not count.</div></div>`;
+    });
   }
 
   input.addEventListener('input', () => {
     if (finished) return;
     const typed = input.value;
+
+    // A jump of many characters at once is not real typing.
+    if (typed.length - lastLength > 12) {
+      input.value = typed.slice(0, lastLength);
+      result.innerHTML = `<div class="alert alert-warning" style="margin-top:1rem">${icon('info', 17)}
+        <div>Type the sentence out - pasting it in does not count.</div></div>`;
+      return;
+    }
+    lastLength = typed.length;
 
     if (!started && typed.length) {
       started = Date.now();
@@ -101,7 +125,7 @@ export default function typing({ root, onScore }) {
     finished = true;
     clearInterval(timer);
     input.disabled = true;
-    const { elapsed, accuracy, wpm } = stats(typed);
+    const { elapsed, accuracy, wpm, capped } = stats(typed);
     const adjusted = Math.max(0, Math.round(wpm * (accuracy / 100)));
     timeLabel.textContent = `${elapsed.toFixed(1)}s`;
     result.innerHTML = `
@@ -110,6 +134,7 @@ export default function typing({ root, onScore }) {
         <div>
           <strong>${adjusted} WPM</strong> (${wpm} raw, ${accuracy}% accurate) in ${elapsed.toFixed(1)} seconds.
           ${accuracy < 95 ? '<br>Slow down a little - accuracy counts towards your score.' : ''}
+          ${capped ? '<br>That was faster than humanly possible, so the score was capped.' : ''}
         </div>
       </div>`;
     onScore(adjusted, 'played');

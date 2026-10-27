@@ -13,6 +13,30 @@ router.use(requireAuth);
 
 const RESULTS = ['win', 'loss', 'draw', 'played'];
 
+/**
+ * Believable limits for each game, so a score sent straight to the API
+ * cannot put an impossible number at the top of the leaderboard.
+ * min and max are inclusive; anything outside is clamped into range.
+ */
+const SCORE_LIMITS = {
+  typing:       { min: 0, max: 220 },     // words per minute
+  snake:        { min: 0, max: 20000 },
+  memory_match: { min: 4, max: 400 },     // moves taken
+  reaction:     { min: 90, max: 60000 },  // milliseconds; under 90 is not human
+  number_guess: { min: 1, max: 1000 },    // guesses taken
+  quiz_battle:  { min: 0, max: 20 },
+  tic_tac_toe:  { min: 0, max: 1 },
+  connect_four: { min: 0, max: 1 },
+  rps:          { min: 0, max: 5 },
+  market_world: { min: 0, max: 2_000_000_000 }   // lifetime earnings in the shop simulation
+};
+
+function clampScore(gameKey, raw) {
+  const limit = SCORE_LIMITS[gameKey] || { min: 0, max: 1_000_000 };
+  const value = Math.round(Number(raw) || 0);
+  return Math.min(limit.max, Math.max(limit.min, value));
+}
+
 function gamesEnabled() {
   return getSetting('games_enabled', 'true') === 'true';
 }
@@ -110,12 +134,21 @@ router.post('/tournaments/:id/join', wrap(async (req, res) => {
 // ---------------------------------------------------------------------------
 router.post('/:key/score', wrap(async (req, res) => {
   const game = loadGame(req.params.key);
-  const score = Math.max(0, Math.min(1_000_000, Math.round(Number(req.body.score) || 0)));
+  const score = clampScore(game.key, req.body.score);
   const result = RESULTS.includes(req.body.result) ? req.body.result : 'played';
 
   let xp = xpValue('xp_challenge', 10);
   if (result === 'win') xp = xpValue('xp_win', 20);
   else if (result === 'loss') xp = Math.round(xpValue('xp_challenge', 10) / 2);
+
+  // A game takes time to play, so a burst of scores is not real play.
+  const recent = get(
+    "SELECT COUNT(*) AS n FROM game_scores WHERE user_id = ? AND created_at > datetime('now', '-1 minute')",
+    req.user.id
+  ).n;
+  if (recent >= 12) {
+    throw new HttpError(429, 'That is a lot of games very quickly. Take a short break and try again.', 'too_fast');
+  }
 
   run('INSERT INTO game_scores (game_key, user_id, score, result, xp_awarded) VALUES (?, ?, ?, ?, ?)',
     game.key, req.user.id, score, result, xp);

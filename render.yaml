@@ -1,0 +1,46 @@
+# ==========================================================
+# One-click hosting for the Grade 8 Hub on Render.
+#
+# Render runs a normal long-lived Node server, which is what the
+# live messaging needs, and can mount a permanent disk so accounts
+# and messages survive restarts.
+#
+# How to use it:
+#   1. Push this project to GitHub
+#   2. Go to https://render.com -> New -> Blueprint
+#   3. Pick this repository. Render reads this file and sets it up.
+#
+# The disk below is a PAID feature (a small monthly cost). Without
+# it the hub still runs, but every restart wipes all accounts and
+# messages - see the README before choosing.
+# ==========================================================
+services:
+  - type: web
+    name: grade8-hub
+    runtime: node
+    plan: starter            # "free" also works, but see the disk note above
+    region: frankfurt        # change to the region closest to your school
+    buildCommand: npm ci
+    startCommand: npm start        # runs setup first, which creates the first administrator
+    healthCheckPath: /api/health
+
+    disk:
+      name: grade8-hub-data
+      mountPath: /data
+      sizeGB: 1
+
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_FILE
+        value: /data/grade8hub.db
+      - key: UPLOAD_DIR
+        value: /data/uploads
+      - key: SEED_DEMO_DATA
+        value: "false"
+      - key: JWT_SECRET
+        generateValue: true   # Render makes a long random secret for you
+      - key: ADMIN_USERNAME
+        sync: false           # Render asks you for these when you deploy
+      - key: ADMIN_PASSWORD
+        sync: false

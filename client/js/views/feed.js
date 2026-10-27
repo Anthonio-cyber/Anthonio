@@ -9,6 +9,7 @@ import { setPageTitle } from '../components/shell.js';
 import { avatar, emptyState, loadingBlock } from '../components/common.js';
 import { renderPostCard, wirePostList } from '../components/post-card.js';
 import { toast } from '../lib/ui.js';
+import { queuePost } from '../lib/offline.js';
 
 const FILTERS = [
   ['all', 'Everything'],
@@ -255,7 +256,17 @@ function renderComposer(mount) {
         <input class="input" placeholder="Option 2" data-poll-option>`;
       toast('Posted to the class feed.', 'success');
     } catch (err) {
-      toast(err.message, 'error');
+      // With no connection, keep the post and send it automatically later
+      // rather than losing what was written.
+      const connectionProblem = !err.status || err.status === 0 || err.status >= 500;
+      if (connectionProblem && type !== 'poll' && !file) {
+        queuePost({ type, content, subject: subject?.value?.trim() || '', clubId: null });
+        form.reset();
+        textarea.style.height = 'auto';
+        toast('You are offline. This will be posted as soon as you are back.', 'warning', 'Saved');
+      } else {
+        toast(err.message, 'error');
+      }
     } finally {
       button.disabled = false;
       button.innerHTML = `${icon('send', 15)} Post`;

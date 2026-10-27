@@ -10,6 +10,7 @@ import { setPageTitle } from '../components/shell.js';
 import { avatar, emptyState, openReportDialog, openUserPicker } from '../components/common.js';
 import { toast, contextMenu, confirmDialog, promptDialog, modal } from '../lib/ui.js';
 import { navigate } from '../lib/router.js';
+import { queueMessage } from '../lib/offline.js';
 
 const REACTIONS = ['thumb', 'heart', 'smile', 'wow', 'sad'];
 const REACTION_TEXT = { thumb: '+1', heart: '<3', smile: ':)', wow: ':o', sad: ':(' };
@@ -524,8 +525,15 @@ function wireThread(mount, state, conversation, data) {
       appendMessage(mount, message);
       loadConversations(mount, state);
     } catch (err) {
-      toast(err.message, 'error');
-      input.value = text;
+      // With no connection, hold the message and send it automatically later.
+      const connectionProblem = !err.status || err.status === 0 || err.status >= 500;
+      if (connectionProblem && !file) {
+        queueMessage(conversation.id, text);
+        toast('You are offline. This will send as soon as you are back.', 'warning', 'Saved');
+      } else {
+        toast(err.message, 'error');
+        input.value = text;
+      }
     }
   });
 }
