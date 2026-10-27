@@ -21,7 +21,7 @@ services:
     plan: starter            # "free" also works, but see the disk note above
     region: frankfurt        # change to the region closest to your school
     buildCommand: npm ci
-    startCommand: node server/index.js
+    startCommand: npm start        # runs setup first, which creates the first administrator
     healthCheckPath: /api/health
 
     disk:
