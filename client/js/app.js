@@ -100,6 +100,7 @@ function registerRoutes() {
   lazy('/announcements',  () => import('./views/announcements.js'));
   lazy('/announcements/:id', () => import('./views/announcements.js'));
   lazy('/homework',       () => import('./views/homework.js'));
+  lazy('/practice',       () => import('./views/practice.js'));
   lazy('/homework/:id',   () => import('./views/homework.js'));
   lazy('/leaderboard',    () => import('./views/leaderboard.js'));
   lazy('/profile',        () => import('./views/profile.js'));

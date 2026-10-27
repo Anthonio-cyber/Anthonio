@@ -420,3 +420,38 @@ CREATE TABLE IF NOT EXISTS settings (
   key   TEXT PRIMARY KEY,
   value TEXT NOT NULL
 );
+
+-- ---------- Practice: subjects and question banks ------------------------
+CREATE TABLE IF NOT EXISTS subjects (
+  id          INTEGER PRIMARY KEY AUTOINCREMENT,
+  name        TEXT NOT NULL UNIQUE COLLATE NOCASE,
+  icon        TEXT NOT NULL DEFAULT 'book',
+  description TEXT DEFAULT '',
+  sort_order  INTEGER NOT NULL DEFAULT 0,
+  is_active   INTEGER NOT NULL DEFAULT 1
+);
+
+CREATE TABLE IF NOT EXISTS practice_questions (
+  id           INTEGER PRIMARY KEY AUTOINCREMENT,
+  subject_id   INTEGER NOT NULL REFERENCES subjects(id) ON DELETE CASCADE,
+  topic        TEXT DEFAULT '',
+  difficulty   TEXT NOT NULL DEFAULT 'medium',   -- easy | medium | hard
+  question     TEXT NOT NULL,
+  options_json TEXT NOT NULL,                    -- ["choice a","choice b",...]
+  answer_index INTEGER NOT NULL,
+  explanation  TEXT DEFAULT '',
+  created_by   INTEGER REFERENCES users(id) ON DELETE SET NULL,
+  is_deleted   INTEGER NOT NULL DEFAULT 0,
+  created_at   TEXT NOT NULL DEFAULT (datetime('now'))
+);
+CREATE INDEX IF NOT EXISTS idx_practice_subject ON practice_questions(subject_id, is_deleted);
+
+CREATE TABLE IF NOT EXISTS practice_attempts (
+  id           INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id      INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  question_id  INTEGER NOT NULL REFERENCES practice_questions(id) ON DELETE CASCADE,
+  chosen_index INTEGER,
+  correct      INTEGER NOT NULL DEFAULT 0,
+  answered_at  TEXT NOT NULL DEFAULT (datetime('now'))
+);
+CREATE INDEX IF NOT EXISTS idx_attempts_user ON practice_attempts(user_id, question_id);

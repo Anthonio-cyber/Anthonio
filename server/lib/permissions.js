@@ -35,6 +35,7 @@ export const PERMISSIONS = {
   'announcements.delete': 'Delete announcements',
 
   'games.manage': 'Enable/disable games, reset leaderboards, run tournaments',
+  'practice.manage': 'Add, edit and remove practice subjects and questions',
 
   'reports.view': 'See the moderation queue',
   'reports.resolve': 'Resolve or dismiss reports',
@@ -65,6 +66,7 @@ const TEACHER = [
   ...STUDENT,
   'posts.moderate',
   'homework.create', 'homework.edit', 'homework.delete', 'homework.stats',
+  'practice.manage',
   'announcements.create', 'announcements.edit', 'announcements.delete',
   'reports.view',
   'admin.access'
@@ -108,7 +110,8 @@ export const DEFAULT_SETTINGS = {
   xp_challenge: '10',
   xp_tournament: '100',
   xp_post: '2',
-  xp_homework_complete: '5'
+  xp_homework_complete: '5',
+  xp_practice_correct: '3'
 };
 
 export const GAME_CATALOGUE = [

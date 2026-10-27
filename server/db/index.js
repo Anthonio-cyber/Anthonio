@@ -4,6 +4,7 @@ import url from 'node:url';
 import Database from 'better-sqlite3';
 import { config } from '../lib/config.js';
 import { PERMISSIONS, ROLES, DEFAULT_SETTINGS, GAME_CATALOGUE, ACHIEVEMENTS } from '../lib/permissions.js';
+import { SUBJECTS, QUESTIONS } from './practice-bank.js';
 
 const here = path.dirname(url.fileURLToPath(import.meta.url));
 
@@ -45,6 +46,7 @@ function loadReferenceData() {
     for (const [key, value] of Object.entries(DEFAULT_SETTINGS)) insertSetting.run(key, value);
     for (const g of GAME_CATALOGUE) insertGame.run(g);
     for (const a of ACHIEVEMENTS) insertAchievement.run(a);
+    loadPracticeBank();
   })();
 }
 
@@ -71,4 +73,32 @@ export function logActivity(actorId, action, targetType = '', targetId = '', det
     'INSERT INTO activity_logs (actor_id, action, target_type, target_id, details) VALUES (?, ?, ?, ?, ?)',
     actorId ?? null, action, targetType, String(targetId ?? ''), details
   );
+}
+
+/**
+ * Puts the starter subjects and questions in place.
+ * Questions are matched on their wording, so running this again never
+ * duplicates them, and anything a teacher adds is left alone.
+ */
+function loadPracticeBank() {
+  const insertSubject = db.prepare(
+    'INSERT INTO subjects (name, icon, description, sort_order) VALUES (@name, @icon, @description, @sort_order) ON CONFLICT(name) DO NOTHING'
+  );
+  for (const subject of SUBJECTS) insertSubject.run(subject);
+
+  const subjectId = db.prepare('SELECT id FROM subjects WHERE name = ?');
+  const exists = db.prepare('SELECT 1 AS x FROM practice_questions WHERE question = ?');
+  const insertQuestion = db.prepare(`
+    INSERT INTO practice_questions (subject_id, topic, difficulty, question, options_json, answer_index, explanation)
+    VALUES (?, ?, ?, ?, ?, ?, ?)`);
+
+  for (const item of QUESTIONS) {
+    const subject = subjectId.get(item.subject);
+    if (!subject) continue;
+    if (exists.get(item.question)) continue;
+    insertQuestion.run(
+      subject.id, item.topic, item.difficulty, item.question,
+      JSON.stringify(item.options), item.answer_index, item.explanation
+    );
+  }
 }
