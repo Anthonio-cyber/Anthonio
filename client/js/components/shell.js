@@ -18,6 +18,7 @@ const NAV = [
   { path: '/clubs',         label: 'Clubs',         icon: 'users' },
   { path: '/announcements', label: 'Announcements', icon: 'megaphone' },
   { path: '/homework',      label: 'Homework',      icon: 'book' },
+  { path: '/practice',      label: 'Practice',      icon: 'brain' },
   { path: '/leaderboard',   label: 'Leaderboard',   icon: 'trophy' },
   { path: '/profile',       label: 'Profile',       icon: 'user' },
   { path: '/notifications', label: 'Notifications', icon: 'bell', badge: 'notifications' },

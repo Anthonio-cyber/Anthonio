@@ -142,6 +142,17 @@ export const api = {
     stats: (id) => request('GET', `/homework/${id}/stats`)
   },
 
+  practice: {
+    subjects: () => request('GET', '/practice/subjects'),
+    questions: (subjectId, query = '') => request('GET', `/practice/subjects/${subjectId}/questions${query}`),
+    answer: (questionId, chosenIndex) => request('POST', '/practice/answer', { questionId, chosenIndex }),
+    stats: () => request('GET', '/practice/stats'),
+    createSubject: (data) => request('POST', '/practice/subjects', data),
+    createQuestion: (data) => request('POST', '/practice/questions', data),
+    listQuestions: (query = '') => request('GET', `/practice/questions${query}`),
+    deleteQuestion: (id) => request('DELETE', `/practice/questions/${id}`)
+  },
+
   announcements: {
     list: (query = '') => request('GET', `/announcements${query}`),
     one: (id) => request('GET', `/announcements/${id}`),

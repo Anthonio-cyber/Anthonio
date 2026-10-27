@@ -36,6 +36,7 @@ const SHELL = [
   '/js/views/messages.js', '/js/views/games.js', '/js/views/game-play.js',
   '/js/views/clubs.js', '/js/views/club.js', '/js/views/homework.js',
   '/js/views/announcements.js', '/js/views/leaderboard.js', '/js/views/profile.js',
+  '/js/views/practice.js',
   '/js/views/notifications.js', '/js/views/settings.js', '/js/views/admin.js',
 
   '/js/games/tictactoe.js', '/js/games/connect-four.js', '/js/games/rps.js',
@@ -66,7 +67,7 @@ const SHELL = [
 const CACHEABLE_API = [
   '/api/auth/me', '/api/auth/config', '/api/dashboard',
   '/api/homework', '/api/announcements', '/api/posts',
-  '/api/clubs', '/api/games', '/api/users', '/api/notifications'
+  '/api/clubs', '/api/games', '/api/users', '/api/notifications', '/api/practice'
 ];
 
 const isCacheableApi = (pathname) =>

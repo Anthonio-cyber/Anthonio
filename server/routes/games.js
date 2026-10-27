@@ -429,6 +429,8 @@ router.get('/leaderboard/:category', wrap(async (req, res) => {
     rows = all(`
       SELECT u.id AS user_id,
              (SELECT COUNT(*) FROM homework_status hs WHERE hs.user_id = u.id AND hs.status = 'completed') * 10
+             + (SELECT COUNT(DISTINCT pa.question_id) FROM practice_attempts pa
+                WHERE pa.user_id = u.id AND pa.correct = 1) * 3
              + COALESCE((SELECT SUM(gs.xp_awarded) FROM game_scores gs JOIN games g ON g.key = gs.game_key
                          WHERE gs.user_id = u.id AND g.category = 'learning'), 0) AS value
       FROM users u WHERE u.status = 'active'
