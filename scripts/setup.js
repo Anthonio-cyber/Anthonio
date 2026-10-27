@@ -26,5 +26,10 @@ for (const folder of ['database', 'uploads', 'uploads/avatars', 'uploads/posts',
   fs.mkdirSync(path.join(root, folder), { recursive: true });
 }
 
+// Free hosting has no permanent disk, so put the saved copy back
+// before anything opens the database.
+const { restoreIfNeeded } = await import('../server/lib/backup.js');
+await restoreIfNeeded();
+
 const { ensureDatabase } = await import('../server/db/seed.js');
 await ensureDatabase();
