@@ -4,7 +4,8 @@
 // Running it twice never duplicates anything.
 // ==========================================================
 import { db, migrate, get, all, run, getSetting, setSetting } from './index.js';
-import { config } from '../lib/config.js';
+import crypto from 'node:crypto';
+import { config, isProduction } from '../lib/config.js';
 import { hashPassword } from '../lib/auth.js';
 import { inviteCode, pairKey } from '../lib/util.js';
 
@@ -26,6 +27,15 @@ export async function ensureDatabase() {
   // ---- The first administrator ------------------------------------------
   const adminExists = get("SELECT 1 AS x FROM users WHERE role_key IN ('admin','super_admin')");
   if (!adminExists) {
+    // The example password is published in .env.example, so on a site that
+    // is open to the internet it would let anybody sign in as an
+    // administrator. Refuse to use it and invent a strong one instead.
+    const usingExamplePassword = config.admin.password === 'Grade8Admin!' || !config.admin.password;
+    if (isProduction && usingExamplePassword) {
+      config.admin.password = crypto.randomBytes(12).toString('base64url');
+      console.warn('\n  ADMIN_PASSWORD was not set, and the example one is public.');
+      console.warn('  A strong password has been made for you instead - copy it now.');
+    }
     const id = createUser({
       username: config.admin.username,
       password: config.admin.password,
