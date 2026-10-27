@@ -336,17 +336,49 @@ This project already has a `render.yaml`, so Render can set itself up:
 Send that link to your class. It works on phone data with no Wi-Fi, and
 because it is `https`, the **Install app** button starts working too.
 
-### The cost, honestly
+### Free hosting, and what it really costs you
 
-- **Free plan**: works, but has **no permanent disk**, and the server sleeps
-  when nobody uses it. On every restart the database is wiped - all accounts,
-  messages and clubs gone, with no warning. Fine for trying it out for an
-  afternoon. Not fine for a real class.
-- **Paid plan + a 1 GB disk**: a few pounds or dollars a month. Nothing is
-  ever lost. This is what `render.yaml` is set up for.
+`render.yaml` uses Render's **free** plan on purpose, so you are never asked
+for a card. Two things come with that:
 
-Change `plan: starter` to `plan: free` in `render.yaml` if you want to test
-first - but move to a disk before anyone relies on it.
+- The server **sleeps** after about 15 minutes with nobody on it. The next
+  person to open the link waits roughly 50 seconds while it wakes.
+- There is **no permanent disk**, so when it sleeps or redeploys the database
+  is wiped. Every account, message, post and club disappears, with no warning.
+
+Good enough to try it and show friends. Not good enough for a class that
+expects its messages to still be there tomorrow.
+
+### Keeping your data
+
+Pick whichever suits you:
+
+| Option | Cost | Data kept? |
+|---|---|---|
+| Render free plan | Free | No - reset whenever it sleeps |
+| Render + a 1 GB disk | A few pounds/dollars a month | Yes |
+| Host it yourself on a laptop | Free | Yes - but only reachable on your own network |
+
+To add a disk later, put this back into `render.yaml` under the service and
+change `plan: free` to `plan: starter`:
+
+```yaml
+    disk:
+      name: grade8-hub-data
+      mountPath: /data
+      sizeGB: 1
+```
+
+and point the two paths at it:
+
+```yaml
+      - key: DATABASE_FILE
+        value: /data/grade8hub.db
+      - key: UPLOAD_DIR
+        value: /data/uploads
+```
+
+Nothing else changes, and nothing in the code needs touching.
 
 ### Any host with Docker
 

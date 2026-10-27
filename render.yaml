@@ -1,41 +1,44 @@
 # ==========================================================
-# One-click hosting for the Grade 8 Hub on Render.
-#
-# Render runs a normal long-lived Node server, which is what the
-# live messaging needs, and can mount a permanent disk so accounts
-# and messages survive restarts.
+# Free hosting for the Grade 8 Hub on Render.
 #
 # How to use it:
-#   1. Push this project to GitHub
-#   2. Go to https://render.com -> New -> Blueprint
-#   3. Pick this repository. Render reads this file and sets it up.
+#   1. Go to https://render.com -> New -> Blueprint
+#   2. Pick this repository and click Apply
+#   3. Render asks for an admin username and password, then deploys
 #
-# The disk below is a PAID feature (a small monthly cost). Without
-# it the hub still runs, but every restart wipes all accounts and
-# messages - see the README before choosing.
+# This file uses the FREE plan on purpose, so Render does not ask
+# for a card.
+#
+# IMPORTANT - what "free" costs you instead:
+#   * The server goes to sleep after about 15 minutes with nobody
+#     using it. The next person to open it waits ~50 seconds while
+#     it wakes up.
+#   * There is NO permanent disk on the free plan, so when it sleeps
+#     or redeploys, the database is wiped: every account, message,
+#     post and club is lost, with no warning.
+#
+# That is fine for trying it out and showing friends. Before a real
+# class relies on it, see "Keeping your data" in the README.
 # ==========================================================
 services:
   - type: web
     name: grade8-hub
     runtime: node
-    plan: starter            # "free" also works, but see the disk note above
-    region: frankfurt        # change to the region closest to your school
+    plan: free
+    region: frankfurt        # change to whichever region is closest to you
     buildCommand: npm ci
-    startCommand: npm start        # runs setup first, which creates the first administrator
+    startCommand: npm start  # runs setup first, which creates the first administrator
     healthCheckPath: /api/health
-
-    disk:
-      name: grade8-hub-data
-      mountPath: /data
-      sizeGB: 1
 
     envVars:
       - key: NODE_ENV
         value: production
+      # No permanent disk on the free plan, so this lives beside the app
+      # and is reset whenever the server restarts.
       - key: DATABASE_FILE
-        value: /data/grade8hub.db
+        value: ./database/grade8hub.db
       - key: UPLOAD_DIR
-        value: /data/uploads
+        value: ./uploads
       - key: SEED_DEMO_DATA
         value: "false"
       - key: JWT_SECRET
