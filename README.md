@@ -297,6 +297,68 @@ share, but a phone frequently does not.
   installation is its own private hub. One computer hosts; everyone else opens
   its address.
 
+## Putting it online (so it works anywhere, on mobile data)
+
+Hosting the hub on the internet is the only way classmates can reach each
+other from different places - at home, at school on their own data, anywhere.
+
+### Why not Vercel, Netlify or GitHub Pages
+
+Those hosts run **serverless** code: a small function wakes up, answers one
+request and shuts down. The Grade 8 Hub needs the opposite - a server that
+stays running. Three things break on them:
+
+| What the hub needs | What happens on a serverless host |
+|---|---|
+| A live Socket.io connection for instant messages | Cannot be held open. Messaging, typing dots and online status stop working |
+| A database file that stays put | The disk is wiped between requests. Every account and message disappears |
+| Somewhere to keep uploaded pictures | Same problem - avatars and photos vanish |
+
+GitHub Pages is worse again: it only serves static files and cannot run a
+server at all.
+
+### Hosts that do work
+
+Anything that runs a normal long-lived Node server with a permanent disk:
+**Render**, **Railway**, **Fly.io**, **Koyeb**, or any computer with Docker.
+
+### The easy route: Render
+
+This project already has a `render.yaml`, so Render can set itself up:
+
+1. Push this project to GitHub
+2. Go to <https://render.com>, sign in, choose **New** -> **Blueprint**
+3. Pick this repository
+4. Render reads `render.yaml`, asks for an admin username and password,
+   makes a random `JWT_SECRET`, and deploys
+5. You get an address like `https://grade8-hub.onrender.com`
+
+Send that link to your class. It works on phone data with no Wi-Fi, and
+because it is `https`, the **Install app** button starts working too.
+
+### The cost, honestly
+
+- **Free plan**: works, but has **no permanent disk**, and the server sleeps
+  when nobody uses it. On every restart the database is wiped - all accounts,
+  messages and clubs gone, with no warning. Fine for trying it out for an
+  afternoon. Not fine for a real class.
+- **Paid plan + a 1 GB disk**: a few pounds or dollars a month. Nothing is
+  ever lost. This is what `render.yaml` is set up for.
+
+Change `plan: starter` to `plan: free` in `render.yaml` if you want to test
+first - but move to a disk before anyone relies on it.
+
+### Any host with Docker
+
+There is also a `Dockerfile`. Mount a permanent volume at `/data` and the
+database and uploads both live there:
+
+```
+docker build -t grade8hub .
+docker run -p 3000:3000 -v grade8hub-data:/data \
+  -e JWT_SECRET=put-a-long-random-value-here grade8hub
+```
+
 ## What works offline
 
 The hub keeps working when the connection drops:
