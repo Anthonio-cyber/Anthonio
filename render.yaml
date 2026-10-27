@@ -31,6 +31,10 @@ services:
     healthCheckPath: /api/health
 
     envVars:
+      # better-sqlite3 ships ready-built binaries up to Node 22. On newer
+      # Node it tries to compile itself and the build fails, so pin it.
+      - key: NODE_VERSION
+        value: "22"
       - key: NODE_ENV
         value: production
       # No permanent disk on the free plan, so this lives beside the app
