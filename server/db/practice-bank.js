@@ -7,6 +7,71 @@
 // because seeing why an answer is right is the point.
 // ==========================================================
 
+export const TOPICS = [
+  ['Mathematics', 'Number',        'Place value, negatives, primes and indices.'],
+  ['Mathematics', 'Algebra',       'Expressions, equations and expanding brackets.'],
+  ['Mathematics', 'Fractions',     'Fractions, decimals, percentages and ratio.'],
+  ['Mathematics', 'Shape',         'Area, perimeter and angles.'],
+  ['Mathematics', 'Data',          'Averages, charts and probability.'],
+  ['English',     'Grammar',       'Word classes, tenses and sentence structure.'],
+  ['English',     'Punctuation',   'Commas, apostrophes and speech marks.'],
+  ['English',     'Spelling',      'Tricky spellings and homophones.'],
+  ['English',     'Reading',       'Vocabulary and literary devices.'],
+  ['Science',     'Biology',       'Cells, the human body and living things.'],
+  ['Science',     'Chemistry',     'Elements, reactions and states of matter.'],
+  ['Science',     'Physics',       'Forces, electricity, light and space.'],
+  ['Geography',   'Physical',      'Rivers, weather and the structure of the Earth.'],
+  ['Geography',   'Human',         'Countries, capitals and population.'],
+  ['Geography',   'Map skills',    'Grid references, contours and scale.'],
+  ['History',     'World wars',    'Causes, events and consequences.'],
+  ['History',     'Africa',        'Independence and the people who led it.'],
+  ['History',     'Ancient world', 'Early civilisations and their achievements.'],
+  ['History',     'Modern world',  'Exploration, industry and civil rights.'],
+  ['ICT',         'Hardware',      'The parts of a computer and what they do.'],
+  ['ICT',         'Online safety', 'Passwords, privacy and spotting scams.'],
+  ['ICT',         'The internet',  'How the web works and how data travels.'],
+  ['ICT',         'Programming',   'Loops, variables, bugs and output.']
+];
+
+/**
+ * The first questions were written with free-text topics. This puts each
+ * one into the matching real topic, so the bank has a tidy structure
+ * instead of dozens of one-question topics.
+ */
+export const TOPIC_ALIASES = {
+  'Mathematics': {
+    'Percentages': 'Fractions', 'Ratio': 'Fractions', 'Fractions': 'Fractions',
+    'Area': 'Shape', 'Perimeter': 'Shape', 'Angles': 'Shape',
+    'Number': 'Number', 'Negative numbers': 'Number', 'Indices': 'Number',
+    'Algebra': 'Algebra', 'Averages': 'Data'
+  },
+  'English': {
+    'Word classes': 'Grammar', 'Plurals': 'Grammar', 'Grammar': 'Grammar',
+    'Apostrophes': 'Punctuation', 'Punctuation': 'Punctuation',
+    'Homophones': 'Spelling', 'Spelling': 'Spelling',
+    'Vocabulary': 'Reading', 'Literary devices': 'Reading'
+  },
+  'Science': {
+    'Plants': 'Biology', 'Human body': 'Biology', 'Cells': 'Biology', 'Biology': 'Biology',
+    'Chemistry': 'Chemistry', 'States of matter': 'Chemistry',
+    'Space': 'Physics', 'Forces': 'Physics', 'Electricity': 'Physics'
+  },
+  'Geography': {
+    'Rivers': 'Physical', 'Earth structure': 'Physical', 'Weather': 'Physical',
+    'Climate': 'Physical', 'Natural features': 'Physical',
+    'Capitals': 'Human', 'Continents': 'Human', 'Maps': 'Map skills'
+  },
+  'History': {
+    'World wars': 'World wars', 'Africa': 'Africa', 'Ancient world': 'Ancient world',
+    'Exploration': 'Modern world', 'Industry': 'Modern world', 'Civil rights': 'Modern world'
+  },
+  'ICT': {
+    'Hardware': 'Hardware', 'Storage': 'Hardware',
+    'Internet safety': 'Online safety', 'Internet': 'The internet',
+    'Programming': 'Programming'
+  }
+};
+
 export const SUBJECTS = [
   { name: 'Mathematics', icon: 'chart',  description: 'Number, algebra, shape and data.',            sort_order: 1 },
   { name: 'English',     icon: 'book',   description: 'Grammar, punctuation, spelling and reading.', sort_order: 2 },
@@ -139,4 +204,92 @@ export const QUESTIONS = [
     'A loop repeats a block of code, either a set number of times or until a condition is met.'),
   q('ICT', 'Internet safety', 'medium', 'What is phishing?', ['A type of computer game', 'Tricking people into giving away private information', 'Making a website load faster', 'Backing up your files'], 1,
     'Phishing messages pretend to be someone trustworthy to steal passwords or money.')
+];
+
+// ---- Questions that are not simple multiple choice ----------------------
+// kind: true_false | fill_blank | find_bug | output
+const t  = (subject, topic, difficulty, question, isTrue, explanation) =>
+  ({ subject, topic, difficulty, kind: 'true_false', question,
+     options: ['True', 'False'], answer_index: isTrue ? 0 : 1, explanation });
+
+const fb = (subject, topic, difficulty, question, accepted, explanation) =>
+  ({ subject, topic, difficulty, kind: 'fill_blank', question, accepted, explanation });
+
+const code = (subject, topic, difficulty, kind, question, codeSnippet, options, answer_index, explanation) =>
+  ({ subject, topic, difficulty, kind, question, codeSnippet, options, answer_index, explanation });
+
+export const EXTRA_QUESTIONS = [
+  // ---------------- True or false ----------------
+  t('Science', 'Biology', 'easy', 'The heart has four chambers.', true,
+    'Two atria on top and two ventricles underneath.'),
+  t('Science', 'Physics', 'easy', 'Sound travels faster than light.', false,
+    'Light is far faster, which is why you see lightning before you hear thunder.'),
+  t('Mathematics', 'Number', 'easy', 'Every prime number is odd.', false,
+    '2 is prime and even. It is the only even prime.'),
+  t('Mathematics', 'Shape', 'medium', 'The angles inside any quadrilateral add up to 360 degrees.', true,
+    'A quadrilateral splits into two triangles, and 180 + 180 = 360.'),
+  t('English', 'Grammar', 'medium', 'A verb is a word that describes a noun.', false,
+    'That is an adjective. A verb is a doing or being word.'),
+  t('Geography', 'Physical', 'easy', 'The Equator is the longest line of latitude.', true,
+    'It sits at the widest part of the Earth, so it is the longest.'),
+  t('ICT', 'Online safety', 'easy', 'It is safe to use the same password on every website.', false,
+    'If one site is broken into, every other account is then at risk.'),
+
+  // ---------------- Fill in the blank ----------------
+  fb('Science', 'Biology', 'easy', 'Green plants make their own food by a process called ___.',
+    ['photosynthesis'], 'Photosynthesis uses light, water and carbon dioxide.'),
+  fb('Science', 'Chemistry', 'medium', 'Water boils at ___ degrees Celsius at sea level.',
+    ['100', 'one hundred'], 'At normal air pressure water boils at 100 °C.'),
+  fb('Mathematics', 'Shape', 'easy', 'A shape with eight sides is called an ___.',
+    ['octagon'], 'Oct- means eight, as in October, once the eighth month.'),
+  fb('English', 'Grammar', 'medium', 'A word that describes a verb is an ___.',
+    ['adverb'], 'Adverbs often end in -ly, such as quickly or carefully.'),
+  fb('Geography', 'Human', 'easy', 'The capital city of Ghana is ___.',
+    ['accra'], 'Accra is on the Atlantic coast and is the largest city in Ghana.'),
+  fb('ICT', 'Hardware', 'medium', 'Memory that loses its contents when the power goes off is called ___.',
+    ['ram', 'random access memory'], 'RAM is temporary. A hard disk keeps its contents without power.'),
+
+  // ---------------- Find the bug ----------------
+  code('ICT', 'Programming', 'easy', 'find_bug',
+    'This should print the numbers 1 to 5, but it does not. What is wrong?',
+    'for (let i = 1; i < 5; i++) {\n  print(i);\n}',
+    ['It should be i <= 5', 'It should start at 0', 'print should be inside the brackets', 'i++ should be i--'],
+    0, 'With i < 5 the loop stops after 4. Using i <= 5 includes the 5.'),
+
+  code('ICT', 'Programming', 'medium', 'find_bug',
+    'This should add up the list, but the total always comes out as the last number. Why?',
+    'let total = 0;\nfor (const n of numbers) {\n  total = n;\n}',
+    ['total = n should be total = total + n', 'The list is empty', 'total should start at 1', 'The loop runs backwards'],
+    0, 'total = n replaces the total each time instead of adding to it.'),
+
+  code('ICT', 'Programming', 'medium', 'find_bug',
+    'This is meant to check whether a number is 10. What is the mistake?',
+    'if (number = 10) {\n  print("It is ten");\n}',
+    ['A single = sets the value instead of comparing', 'It needs quotes around 10', 'if should be while', 'The brackets are the wrong way round'],
+    0, 'One = assigns a value. Comparing needs == or ===.'),
+
+  // ---------------- What is the output ----------------
+  code('ICT', 'Programming', 'easy', 'output',
+    'What does this print?',
+    'let x = 4;\nlet y = 3;\nprint(x * y);',
+    ['12', '7', '43', '1'],
+    0, '4 multiplied by 3 is 12.'),
+
+  code('ICT', 'Programming', 'medium', 'output',
+    'What does this print?',
+    'let word = "cat";\nprint(word + "s");',
+    ['cats', 'cat s', 'cat + s', 'An error'],
+    0, 'Joining text together with + is called concatenation, giving "cats".'),
+
+  code('ICT', 'Programming', 'medium', 'output',
+    'How many times does this print "hello"?',
+    'for (let i = 0; i < 3; i++) {\n  print("hello");\n}',
+    ['3', '2', '4', '0'],
+    0, 'i takes the values 0, 1 and 2, so it runs three times.'),
+
+  code('Mathematics', 'Algebra', 'medium', 'output',
+    'If x = 5, what is the value of this expression?',
+    '2 * x + 3',
+    ['13', '16', '10', '25'],
+    0, 'Multiply first: 2 x 5 = 10, then add 3 to get 13.')
 ];

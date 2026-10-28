@@ -455,3 +455,14 @@ CREATE TABLE IF NOT EXISTS practice_attempts (
   answered_at  TEXT NOT NULL DEFAULT (datetime('now'))
 );
 CREATE INDEX IF NOT EXISTS idx_attempts_user ON practice_attempts(user_id, question_id);
+
+-- ---------- Topics inside a subject --------------------------------------
+CREATE TABLE IF NOT EXISTS topics (
+  id          INTEGER PRIMARY KEY AUTOINCREMENT,
+  subject_id  INTEGER NOT NULL REFERENCES subjects(id) ON DELETE CASCADE,
+  name        TEXT NOT NULL,
+  description TEXT DEFAULT '',
+  sort_order  INTEGER NOT NULL DEFAULT 0,
+  UNIQUE (subject_id, name)
+);
+CREATE INDEX IF NOT EXISTS idx_topics_subject ON topics(subject_id);
