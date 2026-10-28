@@ -4,7 +4,7 @@ import url from 'node:url';
 import Database from 'better-sqlite3';
 import { config } from '../lib/config.js';
 import { PERMISSIONS, ROLES, DEFAULT_SETTINGS, GAME_CATALOGUE, ACHIEVEMENTS } from '../lib/permissions.js';
-import { SUBJECTS, QUESTIONS } from './practice-bank.js';
+import { SUBJECTS, TOPICS, QUESTIONS, EXTRA_QUESTIONS, TOPIC_ALIASES } from './practice-bank.js';
 
 const here = path.dirname(url.fileURLToPath(import.meta.url));
 
@@ -14,10 +14,26 @@ export const db = new Database(config.databaseFile);
 db.pragma('journal_mode = WAL');
 db.pragma('foreign_keys = ON');
 
+/** Adds a column to an existing table only if it is not already there. */
+function addColumnIfMissing(table, column, definition) {
+  const columns = db.prepare(`PRAGMA table_info(${table})`).all();
+  if (columns.some((c) => c.name === column)) return;
+  db.exec(`ALTER TABLE ${table} ADD COLUMN ${column} ${definition}`);
+}
+
+/** Brings databases made by earlier versions up to date. */
+function migrateExisting() {
+  addColumnIfMissing('practice_questions', 'topic_id', 'INTEGER REFERENCES topics(id) ON DELETE SET NULL');
+  addColumnIfMissing('practice_questions', 'kind', "TEXT NOT NULL DEFAULT 'multiple_choice'");
+  addColumnIfMissing('practice_questions', 'code_snippet', "TEXT DEFAULT ''");
+  addColumnIfMissing('practice_questions', 'accepted_json', "TEXT DEFAULT ''");
+}
+
 /** Create every table (idempotent) and load the reference data. */
 export function migrate() {
   const schema = fs.readFileSync(path.join(here, 'schema.sql'), 'utf8');
   db.exec(schema);
+  migrateExisting();
   loadReferenceData();
 }
 
@@ -87,18 +103,51 @@ function loadPracticeBank() {
   for (const subject of SUBJECTS) insertSubject.run(subject);
 
   const subjectId = db.prepare('SELECT id FROM subjects WHERE name = ?');
-  const exists = db.prepare('SELECT 1 AS x FROM practice_questions WHERE question = ?');
-  const insertQuestion = db.prepare(`
-    INSERT INTO practice_questions (subject_id, topic, difficulty, question, options_json, answer_index, explanation)
-    VALUES (?, ?, ?, ?, ?, ?, ?)`);
 
-  for (const item of QUESTIONS) {
-    const subject = subjectId.get(item.subject);
-    if (!subject) continue;
-    if (exists.get(item.question)) continue;
-    insertQuestion.run(
-      subject.id, item.topic, item.difficulty, item.question,
-      JSON.stringify(item.options), item.answer_index, item.explanation
-    );
-  }
+  // Topics belong to a subject, so they are added once that exists.
+  const insertTopic = db.prepare(
+    'INSERT INTO topics (subject_id, name, description, sort_order) VALUES (?, ?, ?, ?) ON CONFLICT(subject_id, name) DO NOTHING'
+  );
+  TOPICS.forEach(([subjectName, name, description], index) => {
+    const subject = subjectId.get(subjectName);
+    if (subject) insertTopic.run(subject.id, name, description, index);
+  });
+
+  const topicId = db.prepare('SELECT id FROM topics WHERE subject_id = ? AND name = ?');
+  // Two different code questions can legitimately share a prompt such as
+  // "What does this print?", so the code they show is part of their identity.
+  const exists = db.prepare(
+    "SELECT 1 AS x FROM practice_questions WHERE question = ? AND COALESCE(code_snippet, '') = ?"
+  );
+  const insertQuestion = db.prepare(`
+    INSERT INTO practice_questions
+      (subject_id, topic_id, topic, kind, difficulty, question, options_json, answer_index,
+       accepted_json, code_snippet, explanation)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`);
+
+  const addAll = (items) => {
+    for (const item of items) {
+      const subject = subjectId.get(item.subject);
+      if (!subject) continue;
+      if (exists.get(item.question, item.codeSnippet || '')) continue;
+      const topicName = TOPIC_ALIASES[item.subject]?.[item.topic] || item.topic;
+      const topic = topicName ? topicId.get(subject.id, topicName) : null;
+      insertQuestion.run(
+        subject.id,
+        topic ? topic.id : null,
+        topicName || '',
+        item.kind || 'multiple_choice',
+        item.difficulty,
+        item.question,
+        JSON.stringify(item.options || []),
+        item.answer_index ?? 0,
+        item.accepted ? JSON.stringify(item.accepted) : '',
+        item.codeSnippet || '',
+        item.explanation
+      );
+    }
+  };
+
+  addAll(QUESTIONS);
+  addAll(EXTRA_QUESTIONS);
 }

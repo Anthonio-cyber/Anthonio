@@ -699,3 +699,48 @@
   .profile-body, .club-hero-body { margin-top: -32px; }
   .podium { gap: .4rem; }
 }
+
+/* ---------- Practice: code questions and typed answers ---------- */
+.code-block {
+  background: var(--surface-3);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--accent);
+  border-radius: var(--radius-sm);
+  padding: .8rem 1rem;
+  margin: .2rem 0 1rem;
+  overflow-x: auto;
+  font-family: var(--font-mono);
+  font-size: .86rem;
+  line-height: 1.6;
+  white-space: pre;
+  tab-size: 2;
+}
+.code-block code { font-family: inherit; color: var(--text); }
+
+.input.answer-right {
+  border-color: var(--success);
+  background: var(--success-soft);
+  color: var(--success);
+  font-weight: 650;
+}
+.input.answer-wrong {
+  border-color: var(--danger);
+  background: var(--danger-soft);
+  color: var(--danger);
+  font-weight: 650;
+}
+
+/* Topic chips under a subject */
+.topic-row { display: flex; flex-wrap: wrap; gap: .4rem; margin-top: .6rem; }
+.topic-chip {
+  display: inline-flex; align-items: center; gap: .35rem;
+  padding: .3rem .6rem;
+  border-radius: 99px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  font-size: .76rem; font-weight: 600;
+  color: var(--text-muted);
+  text-decoration: none;
+}
+.topic-chip:hover { border-color: var(--accent); color: var(--accent); text-decoration: none; }
+.topic-chip .count { color: var(--text-faint); font-weight: 500; }

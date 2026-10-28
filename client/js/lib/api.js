@@ -145,7 +145,11 @@ export const api = {
   practice: {
     subjects: () => request('GET', '/practice/subjects'),
     questions: (subjectId, query = '') => request('GET', `/practice/subjects/${subjectId}/questions${query}`),
-    answer: (questionId, chosenIndex) => request('POST', '/practice/answer', { questionId, chosenIndex }),
+    topics: (subjectId) => request('GET', `/practice/subjects/${subjectId}/topics`),
+    createTopic: (subjectId, data) => request('POST', `/practice/subjects/${subjectId}/topics`, data),
+    deleteTopic: (id) => request('DELETE', `/practice/topics/${id}`),
+    kinds: () => request('GET', '/practice/kinds'),
+    answer: (questionId, chosenIndex, answerText) => request('POST', '/practice/answer', { questionId, chosenIndex, answerText }),
     stats: () => request('GET', '/practice/stats'),
     createSubject: (data) => request('POST', '/practice/subjects', data),
     createQuestion: (data) => request('POST', '/practice/questions', data),
