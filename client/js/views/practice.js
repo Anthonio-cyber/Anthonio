@@ -54,7 +54,9 @@ async function showSubjects(mount) {
 
       ${data.canManage ? `
         <div class="row" style="margin-top:1rem">
-          <button class="btn btn-sm" id="add-question">${icon('plus', 14)} Add a question</button>
+          <button class="btn btn-sm btn-primary" id="add-question">${icon('plus', 14)} Add a question</button>
+          <button class="btn btn-sm" id="add-subject">${icon('book', 14)} Add a subject</button>
+          <button class="btn btn-sm" id="manage-questions">${icon('edit', 14)} Manage questions</button>
         </div>` : ''}
 
       <div class="section-title" style="margin-top:1.5rem">${icon('book', 14)} Subjects</div>
@@ -64,6 +66,8 @@ async function showSubjects(mount) {
     </div>`;
 
   mount.querySelector('#add-question')?.addEventListener('click', () => openQuestionForm(data.subjects, mount));
+  mount.querySelector('#add-subject')?.addEventListener('click', () => openSubjectForm(mount));
+  mount.querySelector('#manage-questions')?.addEventListener('click', () => openQuestionManager(data.subjects, mount));
   return {};
 }
 
@@ -333,6 +337,128 @@ function openQuestionForm(subjects, mount) {
           button.disabled = false;
         }
       });
+    }
+  });
+}
+
+/** Teachers adding a new subject of their own. */
+function openSubjectForm(mount) {
+  const icons = [
+    ['book', 'Book'], ['chart', 'Chart'], ['zap', 'Science'], ['target', 'Target'],
+    ['clock', 'Clock'], ['grid', 'Grid'], ['brain', 'Brain'], ['star', 'Star'],
+    ['game', 'Game'], ['users', 'People']
+  ];
+  modal({
+    title: 'Add a subject',
+    body: `
+      <div class="field">
+        <label>Subject name</label>
+        <input class="input" data-name placeholder="French" maxlength="40">
+      </div>
+      <div class="field">
+        <label>Short description</label>
+        <input class="input" data-description placeholder="Vocabulary, grammar and reading." maxlength="200">
+      </div>
+      <div class="field">
+        <label>Icon</label>
+        <select class="select" data-icon>
+          ${icons.map(([value, label]) => `<option value="${value}">${esc(label)}</option>`).join('')}
+        </select>
+      </div>
+      <p class="small muted" style="margin:0">
+        The subject appears straight away. Add questions to it with
+        <strong>Add a question</strong>.
+      </p>`,
+    footer: `
+      <button class="btn" data-close>Cancel</button>
+      <button class="btn btn-primary" data-save>Add subject</button>`,
+    onOpen: ({ root, close }) => {
+      root.querySelector('[data-save]').addEventListener('click', async (event) => {
+        const name = root.querySelector('[data-name]').value.trim();
+        if (!name) { toast('Give the subject a name.', 'warning'); return; }
+        const button = event.currentTarget;
+        button.disabled = true;
+        try {
+          await api.practice.createSubject({
+            name,
+            description: root.querySelector('[data-description]').value.trim(),
+            icon: root.querySelector('[data-icon]').value
+          });
+          close();
+          toast(`"${name}" added.`, 'success');
+          showSubjects(mount);
+        } catch (err) {
+          toast(err.message, 'error');
+          button.disabled = false;
+        }
+      });
+    }
+  });
+}
+
+/** Lets a teacher look over what is in the bank and remove anything wrong. */
+function openQuestionManager(subjects, mount) {
+  modal({
+    title: 'Manage questions',
+    size: 'modal-lg',
+    body: `
+      <div class="field">
+        <label>Subject</label>
+        <select class="select" data-filter>
+          <option value="">All subjects</option>
+          ${subjects.map((s) => `<option value="${s.id}">${esc(s.name)}</option>`).join('')}
+        </select>
+      </div>
+      <div data-list style="max-height:50vh;overflow-y:auto">
+        <div class="spinner spinner-center"></div>
+      </div>`,
+    footer: `<button class="btn" data-close>Done</button>`,
+    onOpen: ({ root }) => {
+      const list = root.querySelector('[data-list]');
+      const filter = root.querySelector('[data-filter]');
+
+      const load = async () => {
+        list.innerHTML = '<div class="spinner spinner-center"></div>';
+        try {
+          const subjectId = filter.value;
+          const { questions } = await api.practice.listQuestions(subjectId ? `?subjectId=${subjectId}` : '');
+          list.innerHTML = questions.length
+            ? `<div class="list">${questions.map((q) => `
+                <div class="list-item" data-row="${q.id}">
+                  <div class="meta">
+                    <div class="title">${esc(q.question)}</div>
+                    <div class="sub">
+                      ${esc(q.subjectName)}${q.topic ? ` - ${esc(q.topic)}` : ''} - ${esc(q.difficulty)}
+                      - answer: ${esc(q.options[q.answerIndex] || '?')}
+                    </div>
+                  </div>
+                  <button class="btn btn-sm btn-danger" data-remove="${q.id}">Delete</button>
+                </div>`).join('')}</div>`
+            : emptyState({ iconName: 'book', title: 'No questions yet', text: 'Add one with the Add a question button.' });
+        } catch (err) {
+          list.innerHTML = `<p class="small" style="color:var(--danger)">${esc(err.message)}</p>`;
+        }
+      };
+
+      filter.addEventListener('change', load);
+
+      list.addEventListener('click', async (event) => {
+        const button = event.target.closest('[data-remove]');
+        if (!button) return;
+        const id = Number(button.dataset.remove);
+        button.disabled = true;
+        try {
+          await api.practice.deleteQuestion(id);
+          list.querySelector(`[data-row="${id}"]`)?.remove();
+          toast('Question removed.', 'success');
+          showSubjects(mount);
+        } catch (err) {
+          toast(err.message, 'error');
+          button.disabled = false;
+        }
+      });
+
+      load();
     }
   });
 }
